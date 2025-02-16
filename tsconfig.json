@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+      "target": "es2022",
+      "module": "commonjs",
+      "esModuleInterop": true,
+      "forceConsistentCasingInFileNames": true,
+      "strict": true,
+      "strictPropertyInitialization": false, // for reset in camera
+      "skipLibCheck": true,
+      "types": ["@webgpu/types"]
+    },
+  }
