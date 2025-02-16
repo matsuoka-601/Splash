@@ -65,7 +65,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
 
     var normal: vec3f = -normalize(cross(ddx, ddy)); 
     var rayDir = normalize(viewPos);
-    var lightDir = normalize((uniforms.view_matrix * vec4f(-1, 1, -1, 0.)).xyz);
+    var lightDir = normalize((uniforms.view_matrix * vec4f(0, 0, -1, 0.)).xyz);
     var H: vec3f        = normalize(lightDir - rayDir);
     var specular: f32   = pow(max(0.0, dot(H, normal)), 250.);
     var diffuse: f32  = max(0.0, dot(lightDir, normal)) * 1.0;
@@ -85,7 +85,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     var reflectionDir: vec3f = reflect(rayDir, normal);
     var reflectionDirWorld: vec3f = (uniforms.inv_view_matrix * vec4f(reflectionDir, 0.0)).xyz;
     var reflectionColor: vec3f = textureSampleLevel(envmap_texture, texture_sampler, reflectionDirWorld, 0.).rgb; 
-    var finalColor = 0.0 * specular + mix(refractionColor, reflectionColor, fresnel);
+    var finalColor = 1.0 * specular + mix(refractionColor, reflectionColor, fresnel);
 
 
     let maxDeltaZ = max(max(abs(ddx.z), abs(ddy.z)), max(abs(ddx2.z), abs(ddy2.z)));
