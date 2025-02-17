@@ -23,13 +23,13 @@ fn updateSplash(instance_index: u32) -> f32 {
     var splash_cand = sqrt(dot(particles[instance_index].v, particles[instance_index].v));
     splash_cand /= densities[instance_index] / restDensity;
 
-    let lifetime_thresh = 5.;
+    let lifetime_thresh = 4.;
     let lifetime = 0;
     if (splash_cand > lifetime_thresh) { // ライフタイムの付与
         posvel[instance_index].lifetime = lifetime;
     } 
 
-    let splash_thresh = 3.;
+    let splash_thresh = 2.;
     let splash_decrease_rate = 0.008;
 
     // ライフタイムがある場合 ⇒ 1.0 のまま
