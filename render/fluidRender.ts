@@ -59,7 +59,7 @@ export class FluidRenderer {
         }
         const renderEffectConstants = {
             'restDensity' : restDensity, 
-            'densitySizeScale' : 2.0, 
+            'densitySizeScale' : 1.5, 
         }
         const sampler = device.createSampler({
             addressModeU: "repeat",

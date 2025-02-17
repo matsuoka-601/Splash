@@ -30,7 +30,7 @@ fn updateSplash(instance_index: u32) -> f32 {
     } 
 
     let splash_thresh = 2.;
-    let splash_decrease_rate = 0.008;
+    let splash_decrease_rate = 0.006;
 
     // ライフタイムがある場合 ⇒ 1.0 のまま
     // if (posvel[instance_index].lifetime > 0)  {
