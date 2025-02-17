@@ -29,7 +29,7 @@ fn updateSplash(instance_index: u32) -> f32 {
         posvel[instance_index].lifetime = lifetime;
     } 
 
-    let splash_thresh = 2.;
+    let splash_thresh = 3.;
     let splash_decrease_rate = 0.008;
 
     // ライフタイムがある場合 ⇒ 1.0 のまま

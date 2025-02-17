@@ -18,7 +18,6 @@ override dt: f32;
 @group(0) @binding(2) var<uniform> real_box_size: vec3f;
 @group(0) @binding(3) var<uniform> init_box_size: vec3f;
 @group(0) @binding(4) var<uniform> numParticles: u32;
-@group(0) @binding(5) var<uniform> sphereRadius: f32;
 
 fn decodeFixedPoint(fixed_point: i32) -> f32 {
 	return f32(fixed_point) / fixed_point_multiplier;
@@ -83,16 +82,6 @@ fn g2p(@builtin(global_invocation_id) id: vec3<u32>) {
         let dist = center - particles[id.x].position;
         let dirToOrigin = normalize(dist);
         var rForce = vec3f(0);
-
-        // let r: f32 = 18.; // 40,000
-        let r: f32 = sphereRadius; // 60,000
-        // let r: f32 = 26.; // 100,000
-
-        // if (dot(dist, dist) < r * r) {
-        //     particles[id.x].v += -(r - sqrt(dot(dist, dist))) * dirToOrigin * 3.0;
-        // }
-
-        // particles[id.x].v += dirToOrigin * 0.1;
 
         
         let k = 3.0;

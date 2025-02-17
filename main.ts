@@ -169,11 +169,11 @@ async function main() {
 	console.log("buffer allocating done")
 
 
-	let mlsmpmNumParticleParams = [30000, 80000, 120000]
-	let mlsmpmInitBoxSizes = [[52, 52, 52], [45, 45, 75], [55, 45, 90]]
-	let mlsmpmInitDistances = [60, 40, 50]
+	let mlsmpmNumParticleParams = [50000, 80000, 180000]
+	let mlsmpmInitBoxSizes = [[35, 45, 65], [45, 45, 75], [55, 55, 90]]
+	let mlsmpmInitDistances = [50, 60, 70]
 	let radiuses = [15, 20, 25]
-	let mouseRadiuses = [5, 8, 10]
+	let mouseRadiuses = [8, 10, 10]
 	let stretchStrength = [0., 0., 0.]
 
 	const canvasElement = document.getElementById("fluidCanvas") as HTMLCanvasElement;
@@ -209,9 +209,9 @@ async function main() {
 	let initBoxSize = mlsmpmInitBoxSizes[paramsIdx]
 	let realBoxSize = [...initBoxSize];
 
-	smallValue.textContent = "30,000"
-	mediumValue.textContent = "60,000"
-	largeValue.textContent = "100,000"
+	smallValue.textContent = "50,000"
+	mediumValue.textContent = "80,000"
+	largeValue.textContent = "130,000"
 
 	let sphereRenderFl = false
 	let rotateFl = false
@@ -225,7 +225,7 @@ async function main() {
 		if (numberButtonPressed || startFl) { 
 			paramsIdx = parseInt(numberButtonPressedButton)
 			initBoxSize = mlsmpmInitBoxSizes[paramsIdx]
-			mlsmpmSimulator.reset(initBoxSize, radiuses[paramsIdx])
+			mlsmpmSimulator.reset(initBoxSize, radiuses[paramsIdx], mlsmpmNumParticleParams[paramsIdx])
 			camera.reset(mlsmpmInitDistances[paramsIdx], [initBoxSize[0] / 2, initBoxSize[1] / 2, initBoxSize[2] / 2], 
 				mlsmpmFov, mlsmpmZoomRate)
 			realBoxSize = [...initBoxSize]
@@ -242,10 +242,8 @@ async function main() {
 		sphereRenderFl = particle.checked
 		rotateFl = rotate.checked
 		let curBoxWidthRatio = parseInt(slider.value) / 200 + 0.5
-		const minClosingSpeed = -0.01
-		const maxOpeningSpeed = 0.04
+		const minClosingSpeed = -0.015
 		let dVal = Math.max(curBoxWidthRatio - boxWidthRatio, minClosingSpeed)
-		dVal = Math.min(dVal, maxOpeningSpeed);
 		boxWidthRatio += dVal
 
 		// 行列の更新
@@ -258,7 +256,7 @@ async function main() {
 		// 計算のためのパス
 		mlsmpmSimulator.execute(commandEncoder, 
 				[camera.currentHoverX / canvas.clientWidth, camera.currentHoverY / canvas.clientHeight], 
-				camera.calcMouseVelocity(), mlsmpmNumParticleParams[paramsIdx], mouseRadiuses[paramsIdx])
+				camera.calcMouseVelocity(), mouseRadiuses[paramsIdx])
 		mlsmpmRenderer.execute(context, commandEncoder, mlsmpmSimulator.numParticles, sphereRenderFl, stretchStrength[paramsIdx])
 
 		device.queue.submit([commandEncoder.finish()])

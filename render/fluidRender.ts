@@ -385,23 +385,6 @@ export class FluidRenderer {
         this.device.queue.writeBuffer(this.stretchStrengthBuffer, 0, stretchStrengthViews)
         this.device.queue.writeBuffer(this.timeBuffer, 0, timeViews)
 
-        const depthMapPassDescriptor: GPURenderPassDescriptor = {
-            colorAttachments: [
-                {
-                    view: this.depthMapTextureView,
-                    clearValue: { r: 1e6, g: 0.0, b: 0.0, a: 1.0 }, // 背景は十分大きい深さの値でいいか？
-                    loadOp: 'clear',
-                    storeOp: 'store',
-                },
-            ],
-            depthStencilAttachment: {
-                view: this.depthTestTextureView,
-                depthClearValue: 1.0,
-                depthLoadOp: 'clear',
-                depthStoreOp: 'store',
-            },
-        }
-
         const depthFilterPassDescriptors: GPURenderPassDescriptor[] = [
             {
                 colorAttachments: [

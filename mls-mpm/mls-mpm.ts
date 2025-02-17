@@ -256,7 +256,6 @@ export class MLSMPMSimulator {
                 { binding: 2, resource: { buffer: this.realBoxSizeBuffer }},
                 { binding: 3, resource: { buffer: this.initBoxSizeBuffer }},
                 { binding: 4, resource: { buffer: this.numParticlesBuffer }}, 
-                { binding: 5, resource: { buffer: this.sphereRadiusBuffer }}, 
             ],
         })
         this.copyPositionBindGroup = device.createBindGroup({
@@ -274,25 +273,34 @@ export class MLSMPMSimulator {
 
     initDambreak(initBoxSize: number[], numParticles: number) {
         let particlesBuf = new ArrayBuffer(mlsmpmParticleStructSize * numParticlesMax);
-        const spacing = 0.55;
+        const spacing = 0.6;
 
         this.numParticles = 0;
+
+        let sphereCenter = [initBoxSize[0] / 2, 22, initBoxSize[2] / 2]
         
-        for (let j = 3; j < initBoxSize[1] * 0.80 && this.numParticles < numParticles; j += spacing) {
+        for (let j = 3; j < initBoxSize[1] - 4 && this.numParticles < numParticles; j += spacing) {
             for (let i = 3; i < initBoxSize[0] - 4 && this.numParticles < numParticles; i += spacing) {
-                for (let k = 3; k < initBoxSize[2] / 2 && this.numParticles < numParticles; k += spacing) {
-                    const offset = mlsmpmParticleStructSize * this.numParticles;
-                    const particleViews = {
-                        position: new Float32Array(particlesBuf, offset + 0, 3),
-                        v: new Float32Array(particlesBuf, offset + 16, 3),
-                        C: new Float32Array(particlesBuf, offset + 32, 12),
-                    };
-                    const jitter = 2.0 * Math.random();
-                    particleViews.position.set([i + jitter, j + jitter, k + jitter]);
-                    this.numParticles++;
+                for (let k = 3; k < initBoxSize[2] - 4 && this.numParticles < numParticles; k += spacing) {
+                    let diff = (i - sphereCenter[0]) * (i - sphereCenter[0]) 
+                        + (j - sphereCenter[1]) * (j - sphereCenter[1])
+                        + (k - sphereCenter[2]) * (k - sphereCenter[2])
+                    if (diff < 21 * 21) {
+                        const offset = mlsmpmParticleStructSize * this.numParticles;
+                        const particleViews = {
+                            position: new Float32Array(particlesBuf, offset + 0, 3),
+                            v: new Float32Array(particlesBuf, offset + 16, 3),
+                            C: new Float32Array(particlesBuf, offset + 32, 12),
+                        };
+                        const jitter = 2.0 * Math.random();
+                        particleViews.position.set([i + jitter, j + jitter, k + jitter]);
+                        this.numParticles++;
+                    }
                 }
             }
         }
+        
+        console.log(this.numParticles)
         
         let particles = new ArrayBuffer(mlsmpmParticleStructSize * this.numParticles);
         const oldView = new Uint8Array(particlesBuf);
@@ -302,7 +310,7 @@ export class MLSMPMSimulator {
         return particles;
     }
 
-    reset(initBoxSize: number[], sphereRadius: number) {
+    reset(initBoxSize: number[], sphereRadius: number, numParticles: number) {
         renderUniformsViews.sphere_size.set([this.renderDiameter])
         const maxGridCount = this.max_x_grids * this.max_y_grids * this.max_z_grids;
         this.gridCount = Math.ceil(initBoxSize[0]) * Math.ceil(initBoxSize[1]) * Math.ceil(initBoxSize[2]);
@@ -318,11 +326,13 @@ export class MLSMPMSimulator {
         this.device.queue.writeBuffer(this.initBoxSizeBuffer, 0, initBoxSizeValues)
         this.device.queue.writeBuffer(this.sphereRadiusBuffer, 0, sphereRadiusValues)
         this.frameCount = 0;
+        let particles = this.initDambreak(initBoxSize, numParticles)
+        this.device.queue.writeBuffer(this.particleBuffer, 0, particles)
         this.changeBoxSize(initBoxSize)
-        this.changeNumParticles(0)
+        this.changeNumParticles(this.numParticles)
     }
 
-    execute(commandEncoder: GPUCommandEncoder, mouseCoord: number[], mouseVel: number[], targetNumParticles: number, mouseRadius: number) {
+    execute(commandEncoder: GPUCommandEncoder, mouseCoord: number[], mouseVel: number[], mouseRadius: number) {
         const computePass = commandEncoder.beginComputePass();
 
         const canvasInfoViews = {
@@ -336,13 +346,13 @@ export class MLSMPMSimulator {
         canvasInfoViews.mouseRadius.set([mouseRadius])
         this.device.queue.writeBuffer(this.mouseInfoUniformBuffer, 0, this.mouseInfoValues);
 
-        if (this.frameCount % 1 == 0 && this.numParticles < targetNumParticles) { // TODO : dt に依存しないようにする
-            console.log("spawn");
-            computePass.setBindGroup(0, this.spawnParticlesBindGroup)
-            computePass.setPipeline(this.spawnParticlesPipeline)
-            computePass.dispatchWorkgroups(1)
-            this.changeNumParticles(this.numParticles + 100)
-        }
+        // if (this.frameCount % 1 == 0 && this.numParticles < targetNumParticles) { // TODO : dt に依存しないようにする
+        //     console.log("spawn");
+        //     computePass.setBindGroup(0, this.spawnParticlesBindGroup)
+        //     computePass.setPipeline(this.spawnParticlesPipeline)
+        //     computePass.dispatchWorkgroups(1)
+        //     this.changeNumParticles(this.numParticles + 100)
+        // }
 
         for (let i = 0; i < 2; i++) { 
             computePass.setBindGroup(0, this.clearGridBindGroup);
