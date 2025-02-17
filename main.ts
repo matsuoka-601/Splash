@@ -173,7 +173,7 @@ async function main() {
 	let mlsmpmInitBoxSizes = [[52, 52, 52], [45, 45, 75], [55, 45, 90]]
 	let mlsmpmInitDistances = [60, 40, 50]
 	let radiuses = [15, 20, 25]
-	let mouseRadiuses = [5, 6, 10]
+	let mouseRadiuses = [5, 8, 10]
 	let stretchStrength = [0., 0., 0.]
 
 	const canvasElement = document.getElementById("fluidCanvas") as HTMLCanvasElement;

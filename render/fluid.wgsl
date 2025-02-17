@@ -70,7 +70,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     var specular: f32   = pow(max(0.0, dot(H, normal)), 250.);
     var diffuse: f32  = max(0.0, dot(lightDir, normal)) * 1.0;
 
-    var density = 1.2; 
+    var density = 0.6; 
     
     var thickness = textureLoad(thickness_texture, vec2u(input.iuv), 0).r;
 
@@ -80,7 +80,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     var refractionColor: vec3f = bgColor * transmittance;
 
     let F0 = 0.02;
-    var fresnel: f32 = clamp(F0 + (1.0 - F0) * pow(1.0 - dot(normal, -rayDir), 5.0) + 0.03, 0., 1.);
+    var fresnel: f32 = clamp(F0 + (1.0 - F0) * pow(1.0 - dot(normal, -rayDir), 5.0) + 0.00, 0., 1.);
 
     var reflectionDir: vec3f = reflect(rayDir, normal);
     var reflectionDirWorld: vec3f = (uniforms.inv_view_matrix * vec4f(reflectionDir, 0.0)).xyz;
@@ -98,7 +98,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     var foamColor = textureSampleLevel(water_texture, texture_sampler, worldPos.xz / 100 + vec2f(0.3, 0.3) - vec2f(splash.x, splash.z) / 30 * time * 0., 0.);
     var foamRatio = foamColor.a * 1.0;
     finalColor = mix(finalColor, vec3f(1.0), 0.);
-    finalColor = mix(finalColor, vec3f(0.9), splash.x); // splash : [0, 1]
+    finalColor = mix(finalColor, vec3f(0.9, 0.9, 0.92), splash.x); // splash : [0, 1]
     return vec4f(finalColor, 1.0);
     // return foamColor;
     // return vec4f(velocity.z, 0, 0, 0);
