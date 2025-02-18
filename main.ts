@@ -169,8 +169,8 @@ async function main() {
 	console.log("buffer allocating done")
 
 
-	let mlsmpmNumParticleParams = [50000, 80000, 180000]
-	let mlsmpmInitBoxSizes = [[35, 45, 65], [45, 45, 75], [55, 55, 90]]
+	let mlsmpmNumParticleParams = [50000, 70000, 180000]
+	let mlsmpmInitBoxSizes = [[35, 45, 65], [45, 45, 65], [55, 55, 90]]
 	let mlsmpmInitDistances = [50, 60, 70]
 	let radiuses = [15, 20, 25]
 	let mouseRadiuses = [8, 10, 10]
