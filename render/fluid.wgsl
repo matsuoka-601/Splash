@@ -45,7 +45,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     let bgColor: vec3f = vec3f(0.7, 0.7, 0.75);
 
     if (depth >= 1e4) {
-        return vec4f(bgColor, 1.);
+        return mix(vec4f(bgColor, 1.), vec4f(1.), splash.x);
     }
 
     var viewPos: vec3f = computeViewPosFromUVDepth(input.uv, depth); // z は負

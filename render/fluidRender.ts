@@ -12,6 +12,7 @@ export class FluidRenderer {
     depthFilterPipeline: GPURenderPipeline
     thicknessMapPipeline: GPURenderPipeline
     thicknessFilterPipeline: GPURenderPipeline
+    splashFilterPipeline: GPURenderPipeline
     fluidPipeline: GPURenderPipeline
     spherePipeline: GPURenderPipeline
 
@@ -20,6 +21,7 @@ export class FluidRenderer {
     tmpDepthMapTextureView: GPUTextureView
     thicknessTextureView: GPUTextureView
     tmpThicknessTextureView: GPUTextureView
+    tmpSplashTextureView: GPUTextureView
     depthTestTextureView: GPUTextureView
 
     
@@ -27,6 +29,7 @@ export class FluidRenderer {
     depthFilterBindGroups: GPUBindGroup[]
     thicknessMapBindGroup: GPUBindGroup
     thicknessFilterBindGroups: GPUBindGroup[]
+    splashFilterBindGroups: GPUBindGroup[]
     fluidBindGroup: GPUBindGroup
     sphereBindGroup: GPUBindGroup
 
@@ -188,6 +191,25 @@ export class FluidRenderer {
                 topology: 'triangle-list', 
             },
         });
+        this.splashFilterPipeline = device.createRenderPipeline({
+            label: 'splash filter pipeline', 
+            layout: 'auto', 
+            vertex: { 
+                module: vertexModule,  
+                constants: screenConstants
+            },
+            fragment: {
+                module: thicknessFilterModule,
+                targets: [
+                    {
+                        format: 'r32float',
+                    },
+                ],
+            },
+            primitive: {
+                topology: 'triangle-list', 
+            },
+        });
         this.fluidPipeline = device.createRenderPipeline({
             label: 'fluid rendering pipeline', 
             layout: 'auto', 
@@ -233,6 +255,12 @@ export class FluidRenderer {
             usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
             format: 'r16float',
         });
+        const tmpSplashTexture = device.createTexture({
+            label: 'temporary splash texture', 
+            size: [canvas.width, canvas.height, 1],
+            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+            format: 'r32float',
+        });
         const depthTestTexture = device.createTexture({
             size: [canvas.width, canvas.height, 1],
             format: 'depth32float',
@@ -243,6 +271,7 @@ export class FluidRenderer {
         this.tmpDepthMapTextureView = tmpDepthMapTexture.createView()
         this.thicknessTextureView = thicknessTexture.createView()
         this.tmpThicknessTextureView = tmpThicknessTexture.createView()
+        this.tmpSplashTextureView = tmpSplashTexture.createView()
         this.depthTestTextureView = depthTestTexture.createView()
 
         // buffer
@@ -337,6 +366,28 @@ export class FluidRenderer {
                 entries: [
                 // { binding: 0, resource: sampler },
                 { binding: 1, resource: this.tmpThicknessTextureView }, 
+                { binding: 2, resource: { buffer: filterYUniformBuffer } }, 
+                ],
+            }), 
+        ]
+
+        this.splashFilterBindGroups = []
+        this.splashFilterBindGroups = [
+            device.createBindGroup({
+                label: 'splash filterX bind group', 
+                layout: this.splashFilterPipeline.getBindGroupLayout(0),
+                entries: [
+                    // { binding: 0, resource: sampler },
+                    { binding: 1, resource: this.splashTextureView }, 
+                    { binding: 2, resource: { buffer: filterXUniformBuffer } }, 
+                ],
+            }), 
+            device.createBindGroup({
+                label: 'splash filterY bind group', 
+                layout: this.splashFilterPipeline.getBindGroupLayout(0),
+                entries: [
+                // { binding: 0, resource: sampler },
+                { binding: 1, resource: this.tmpSplashTextureView }, 
                 { binding: 2, resource: { buffer: filterYUniformBuffer } }, 
                 ],
             }), 
@@ -441,6 +492,28 @@ export class FluidRenderer {
                 ],
             }
         ]
+        const splashFilterPassDescriptors: GPURenderPassDescriptor[] = [
+            {
+                colorAttachments: [
+                    {
+                        view: this.tmpSplashTextureView, // 一時領域へ書き込み
+                        clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+                        loadOp: 'clear',
+                        storeOp: 'store',
+                    },
+                ],
+            }, 
+            {
+                colorAttachments: [
+                    {
+                        view: this.splashTextureView, // Y のパスはもとに戻す
+                        clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+                        loadOp: 'clear',
+                        storeOp: 'store',
+                    },
+                ],
+            }
+        ]
 
         const fluidPassDescriptor: GPURenderPassDescriptor = {
             colorAttachments: [
@@ -510,6 +583,7 @@ export class FluidRenderer {
             thicknessMapPassEncoder.setPipeline(this.thicknessMapPipeline);
             thicknessMapPassEncoder.draw(6, numParticles);
             thicknessMapPassEncoder.end();
+            
         
             for (var iter = 0; iter < 1; iter++) { // 多いか？
                 const thicknessFilterPassEncoderX = commandEncoder.beginRenderPass(thicknessFilterPassDescriptors[0]);
@@ -523,7 +597,21 @@ export class FluidRenderer {
                 thicknessFilterPassEncoderY.draw(6);
                 thicknessFilterPassEncoderY.end(); 
             }
-      
+
+            for (var iter = 0; iter < 2; iter++) {
+                const splashFilterPassEncoderX = commandEncoder.beginRenderPass(splashFilterPassDescriptors[0]);
+                splashFilterPassEncoderX.setBindGroup(0, this.splashFilterBindGroups[0]);
+                splashFilterPassEncoderX.setPipeline(this.splashFilterPipeline);
+                splashFilterPassEncoderX.draw(6);
+                splashFilterPassEncoderX.end(); 
+                const splashFilterPassEncoderY = commandEncoder.beginRenderPass(splashFilterPassDescriptors[1]);
+                splashFilterPassEncoderY.setBindGroup(0, this.splashFilterBindGroups[1]);
+                splashFilterPassEncoderY.setPipeline(this.splashFilterPipeline);
+                splashFilterPassEncoderY.draw(6);
+                splashFilterPassEncoderY.end(); 
+            }
+
+
             const fluidPassEncoder = commandEncoder.beginRenderPass(fluidPassDescriptor);
             fluidPassEncoder.setBindGroup(0, this.fluidBindGroup);
             fluidPassEncoder.setPipeline(this.fluidPipeline);
