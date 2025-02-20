@@ -1,6 +1,7 @@
 // @group(0) @binding(0) var texture_sampler: sampler;
 @group(0) @binding(1) var texture: texture_2d<f32>;
 @group(0) @binding(2) var<uniform> uniforms: FilterUniforms;
+@group(0) @binding(3) var<uniform> filter_size: i32;
 
 struct FragmentInput {
     @location(0) uv: vec2f,  
@@ -19,7 +20,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
         return vec4f(0., 0., 0., 1.);
     }
 
-    var filter_size: i32 = 4; // とりあえずべた書き
+    // var filter_size: i32 = 4; // とりあえずべた書き
     var sigma: f32 = f32(filter_size) / 3.0;
     var two_sigma: f32 = 2.0 * sigma * sigma;
 

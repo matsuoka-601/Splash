@@ -277,12 +277,18 @@ export class FluidRenderer {
         // buffer
         const filterXUniformsValues = new ArrayBuffer(8)
         const filterYUniformsValues = new ArrayBuffer(8)
+        const thicknessFilterSizeValues = new ArrayBuffer(4);
+        const splashFilterSizeValues = new ArrayBuffer(4);
         const timeValues = new ArrayBuffer(4)
         const filterXUniformsViews = new Float32Array(filterXUniformsValues)
         const filterYUniformsViews = new Float32Array(filterYUniformsValues) 
+        const thicknessFilterSizeViews = new Int32Array(thicknessFilterSizeValues) 
+        const splashFilterSizeViews = new Int32Array(splashFilterSizeValues) 
         const timeViews = new Float32Array(timeValues)
         filterXUniformsViews.set([1.0, 0.0])
         filterYUniformsViews.set([0.0, 1.0])
+        thicknessFilterSizeViews.set([30])
+        splashFilterSizeViews.set([4])
         timeViews.set([0])
         this.time = 0
         const filterXUniformBuffer = device.createBuffer({
@@ -293,6 +299,16 @@ export class FluidRenderer {
         const filterYUniformBuffer = device.createBuffer({
             label: 'filter uniform buffer', 
             size: filterYUniformsValues.byteLength, 
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        })
+        const thicknessFilterSizeBuffer = device.createBuffer({
+            label: 'thickness filter size buffer', 
+            size: thicknessFilterSizeValues.byteLength, 
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        })
+        const splashFilterSizeBuffer = device.createBuffer({
+            label: 'splash filter size buffer', 
+            size: splashFilterSizeValues.byteLength, 
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
         this.stretchStrengthBuffer = device.createBuffer({
@@ -307,6 +323,8 @@ export class FluidRenderer {
         })
         device.queue.writeBuffer(filterXUniformBuffer, 0, filterXUniformsValues);
         device.queue.writeBuffer(filterYUniformBuffer, 0, filterYUniformsValues);
+        device.queue.writeBuffer(thicknessFilterSizeBuffer, 0, thicknessFilterSizeValues);
+        device.queue.writeBuffer(splashFilterSizeBuffer, 0, splashFilterSizeValues);
         device.queue.writeBuffer(this.timeBuffer, 0, timeValues)
 
         // bindGroup
@@ -358,15 +376,17 @@ export class FluidRenderer {
                     // { binding: 0, resource: sampler },
                     { binding: 1, resource: this.thicknessTextureView }, 
                     { binding: 2, resource: { buffer: filterXUniformBuffer } }, 
+                    { binding: 3, resource: { buffer: thicknessFilterSizeBuffer }}
                 ],
             }), 
             device.createBindGroup({
                 label: 'thickness filterY bind group', 
                 layout: this.thicknessFilterPipeline.getBindGroupLayout(0),
                 entries: [
-                // { binding: 0, resource: sampler },
-                { binding: 1, resource: this.tmpThicknessTextureView }, 
-                { binding: 2, resource: { buffer: filterYUniformBuffer } }, 
+                    // { binding: 0, resource: sampler },
+                    { binding: 1, resource: this.tmpThicknessTextureView }, 
+                    { binding: 2, resource: { buffer: filterYUniformBuffer } }, 
+                    { binding: 3, resource: { buffer: thicknessFilterSizeBuffer }}
                 ],
             }), 
         ]
@@ -380,15 +400,17 @@ export class FluidRenderer {
                     // { binding: 0, resource: sampler },
                     { binding: 1, resource: this.splashTextureView }, 
                     { binding: 2, resource: { buffer: filterXUniformBuffer } }, 
+                    { binding: 3, resource: { buffer: splashFilterSizeBuffer }}
                 ],
             }), 
             device.createBindGroup({
                 label: 'splash filterY bind group', 
                 layout: this.splashFilterPipeline.getBindGroupLayout(0),
                 entries: [
-                // { binding: 0, resource: sampler },
-                { binding: 1, resource: this.tmpSplashTextureView }, 
-                { binding: 2, resource: { buffer: filterYUniformBuffer } }, 
+                    // { binding: 0, resource: sampler },
+                    { binding: 1, resource: this.tmpSplashTextureView }, 
+                    { binding: 2, resource: { buffer: filterYUniformBuffer } }, 
+                    { binding: 3, resource: { buffer: splashFilterSizeBuffer }}
                 ],
             }), 
         ]
