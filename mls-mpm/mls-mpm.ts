@@ -277,7 +277,7 @@ export class MLSMPMSimulator {
 
         this.numParticles = 0;
 
-        let sphereCenter = [initBoxSize[0] / 2, 19, initBoxSize[2] / 2]
+        let sphereCenter = [initBoxSize[0] / 2, initBoxSize[0] / 2, initBoxSize[2] / 2]
         
         for (let j = 3; j < initBoxSize[1] - 4 && this.numParticles < numParticles; j += spacing) {
             for (let i = 3; i < initBoxSize[0] - 4 && this.numParticles < numParticles; i += spacing) {
@@ -285,7 +285,7 @@ export class MLSMPMSimulator {
                     let diff = (i - sphereCenter[0]) * (i - sphereCenter[0]) 
                         + (j - sphereCenter[1]) * (j - sphereCenter[1])
                         + (k - sphereCenter[2]) * (k - sphereCenter[2])
-                    if (diff < 21 * 21) {
+                    if (diff < 20 * 20) {
                         const offset = mlsmpmParticleStructSize * this.numParticles;
                         const particleViews = {
                             position: new Float32Array(particlesBuf, offset + 0, 3),
@@ -346,7 +346,7 @@ export class MLSMPMSimulator {
         canvasInfoViews.mouseRadius.set([mouseRadius])
         this.device.queue.writeBuffer(this.mouseInfoUniformBuffer, 0, this.mouseInfoValues);
 
-        // if (this.frameCount % 1 == 0 && this.numParticles < targetNumParticles) { // TODO : dt に依存しないようにする
+        // if (this.frameCount % 1 == 0 && this.numParticles < 100000) { // TODO : dt に依存しないようにする
         //     console.log("spawn");
         //     computePass.setBindGroup(0, this.spawnParticlesBindGroup)
         //     computePass.setPipeline(this.spawnParticlesPipeline)
