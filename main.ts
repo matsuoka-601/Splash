@@ -174,7 +174,7 @@ async function main() {
 	let mlsmpmInitDistances = [50, 60, 70]
 	let radiuses = [15, 20, 25]
 	let mouseRadiuses = [8, 10, 10]
-	let stretchStrength = [0.3, 0.3, 0.3]
+	let stretchStrength = [0.5, 0.5, 0.5]
 
 	const canvasElement = document.getElementById("fluidCanvas") as HTMLCanvasElement;
 	// シミュレーション，カメラの初期化
@@ -242,7 +242,7 @@ async function main() {
 		sphereRenderFl = particle.checked
 		rotateFl = rotate.checked
 		let curBoxWidthRatio = parseInt(slider.value) / 200 + 0.5
-		const minClosingSpeed = -0.015
+		const minClosingSpeed = -0.010
 		let dVal = Math.max(curBoxWidthRatio - boxWidthRatio, minClosingSpeed)
 		boxWidthRatio += dVal
 
