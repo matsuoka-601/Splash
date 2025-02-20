@@ -277,7 +277,7 @@ export class MLSMPMSimulator {
 
         this.numParticles = 0;
 
-        let sphereCenter = [initBoxSize[0] / 2, 22, initBoxSize[2] / 2]
+        let sphereCenter = [initBoxSize[0] / 2, 19, initBoxSize[2] / 2]
         
         for (let j = 3; j < initBoxSize[1] - 4 && this.numParticles < numParticles; j += spacing) {
             for (let i = 3; i < initBoxSize[0] - 4 && this.numParticles < numParticles; i += spacing) {

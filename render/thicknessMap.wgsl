@@ -71,9 +71,9 @@ fn vs(
 
     let splash = particles[instance_index].splash;
 
-    var size = uniforms.sphere_size * clamp(particles[instance_index].density / restDensity * densitySizeScale, 0.0, 0.6);
+    var size = uniforms.sphere_size * clamp(particles[instance_index].density / restDensity * densitySizeScale, 0.1, 0.6);
     if (splash > 0.) {
-        size = uniforms.sphere_size * min(0.5, clamp(particles[instance_index].density / restDensity * densitySizeScale, 0.0, 1.0));
+        size = uniforms.sphere_size * min(0.5, clamp(particles[instance_index].density / restDensity * densitySizeScale, 0.1, 1.0));
     } 
 
     let projected_velocity = (uniforms.view_matrix * vec4f(particles[instance_index].v, 0.0)).xy;

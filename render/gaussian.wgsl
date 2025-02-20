@@ -19,7 +19,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
         return vec4f(0., 0., 0., 1.);
     }
 
-    var filter_size: i32 = 3; // とりあえずべた書き
+    var filter_size: i32 = 4; // とりあえずべた書き
     var sigma: f32 = f32(filter_size) / 3.0;
     var two_sigma: f32 = 2.0 * sigma * sigma;
 
