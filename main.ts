@@ -69,6 +69,7 @@ async function main() {
 	const smallValue = document.getElementById("small-value") as HTMLSpanElement;
 	const mediumValue = document.getElementById("medium-value") as HTMLSpanElement;
 	const largeValue = document.getElementById("large-value") as HTMLSpanElement;
+	const veryLargeValue = document.getElementById("very-large-value") as HTMLSpanElement;
 	
 
 	console.log("initialization done")
@@ -169,16 +170,15 @@ async function main() {
 	console.log("buffer allocating done")
 
 
-	let mlsmpmNumParticleParams = [50000, 70000, 180000]
-	let mlsmpmInitBoxSizes = [[35, 45, 65], [45	, 45, 75], [55, 55, 90]]
-	let mlsmpmInitDistances = [50, 60, 70]
-	let radiuses = [15, 20, 25]
-	let mouseRadiuses = [8, 10, 10]
-	let stretchStrength = [0.5, 0.5, 0.5]
+	let mlsmpmNumParticleParams = [40000, 65000, 120000, 180000]
+	let mlsmpmInitBoxSizes = [[35, 40, 60], [40, 45, 75], [45, 45, 90], [55, 55, 100]]
+	let mlsmpmInitDistances = [38, 45, 50, 60]
+	let mouseRadiuses = [8, 10, 10, 10]
+	let stretchStrength = [0.5, 0.5, 0.5, 0.5]
 
 	const canvasElement = document.getElementById("fluidCanvas") as HTMLCanvasElement;
 	// シミュレーション，カメラの初期化
-	const mlsmpmFov = 60 * Math.PI / 180
+	const mlsmpmFov = 75 * Math.PI / 180
 	const mlsmpmRadius = 0.7
 	const mlsmpmDiameter = 2 * mlsmpmRadius
 	const mlsmpmZoomRate = 0.7
@@ -209,9 +209,10 @@ async function main() {
 	let initBoxSize = mlsmpmInitBoxSizes[paramsIdx]
 	let realBoxSize = [...initBoxSize];
 
-	smallValue.textContent = "50,000"
-	mediumValue.textContent = "80,000"
-	largeValue.textContent = "130,000"
+	smallValue.textContent = "40,000"
+	mediumValue.textContent = "65,000"
+	largeValue.textContent = "120,000"
+	veryLargeValue.textContent = "180,000"
 
 	let sphereRenderFl = false
 	let rotateFl = false
@@ -225,7 +226,7 @@ async function main() {
 		if (numberButtonPressed || startFl) { 
 			paramsIdx = parseInt(numberButtonPressedButton)
 			initBoxSize = mlsmpmInitBoxSizes[paramsIdx]
-			mlsmpmSimulator.reset(initBoxSize, radiuses[paramsIdx], mlsmpmNumParticleParams[paramsIdx])
+			mlsmpmSimulator.reset(initBoxSize, mlsmpmNumParticleParams[paramsIdx])
 			camera.reset(mlsmpmInitDistances[paramsIdx], [initBoxSize[0] / 2, initBoxSize[1] / 2, initBoxSize[2] / 2], 
 				mlsmpmFov, mlsmpmZoomRate)
 			realBoxSize = [...initBoxSize]
@@ -238,9 +239,7 @@ async function main() {
 
 		const slider = document.getElementById("slider") as HTMLInputElement
 		const particle = document.getElementById("particle") as HTMLInputElement
-		const rotate = document.getElementById("autorotate") as HTMLInputElement
 		sphereRenderFl = particle.checked
-		rotateFl = rotate.checked
 		let curBoxWidthRatio = parseInt(slider.value) / 200 + 0.5
 		const minClosingSpeed = -0.010
 		let dVal = Math.max(curBoxWidthRatio - boxWidthRatio, minClosingSpeed)
