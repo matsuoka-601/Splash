@@ -46,7 +46,9 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
         wsum += w * wd;
     }
 
-    sum /= wsum;
+    if (wsum > 0.) {
+        sum /= wsum;
+    }
 
     return vec4f(sum, 0., 0., 1.);
 }
