@@ -170,7 +170,7 @@ async function main() {
 	console.log("buffer allocating done")
 
 
-	let mlsmpmNumParticleParams = [40000, 65000, 120000, 180000]
+	let mlsmpmNumParticleParams = [40000, 60000, 100000, 180000]
 	let mlsmpmInitBoxSizes = [[35, 40, 60], [40, 45, 75], [45, 45, 90], [55, 55, 100]]
 	let mlsmpmInitDistances = [38, 45, 50, 60]
 	let mouseRadiuses = [10, 10, 10, 10]
@@ -210,8 +210,8 @@ async function main() {
 	let realBoxSize = [...initBoxSize];
 
 	smallValue.textContent = "40,000"
-	mediumValue.textContent = "65,000"
-	largeValue.textContent = "120,000"
+	mediumValue.textContent = "60,000"
+	largeValue.textContent = "100,000"
 	veryLargeValue.textContent = "180,000"
 
 	let sphereRenderFl = false

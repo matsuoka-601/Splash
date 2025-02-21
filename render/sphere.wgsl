@@ -31,7 +31,6 @@ struct PosVel {
     position: vec3f, 
     v: vec3f, 
     density: f32, 
-    lifetime: i32, 
     splash: f32, 
 }
 
