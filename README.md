@@ -19,7 +19,7 @@ The method used for this project is to give each particle a splash value determi
 
 There are some implementation notes like below.
 - Limit the decreasing rate of the splash value
-  - Just using `smoothstep(lower, upper, speed / density)` as the splash value gives a bit unnatural result because there are some white splash particles which suddenly turn into fluid particles. To avoid this problem, decrease rate of the splash value is clamped so that they don't drop suddenly. 
+  - Just using `smoothstep(lower, upper, speed / density)` as the splash value gives a bit unnatural result because there are some white splash particles which suddenly turn into fluid particles. To avoid this problem, decrease rate of the splash value is clamped so that it doesn't drop suddenly. 
 - Blur the splash map using Gaussian Filter
   - Blending a 'raw' splash map gives a bit powdery result. Therefore, the splash map is blurred using Gaussian Filter to get a more splashy result.
  
