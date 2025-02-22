@@ -1,10 +1,10 @@
 struct RenderUniforms {
-    texel_size: vec2f, 
-    sphere_size: f32, 
-    inv_projection_matrix: mat4x4f, 
-    projection_matrix: mat4x4f, 
-    view_matrix: mat4x4f, 
-    inv_view_matrix: mat4x4f, 
+    texelSize: vec2f, 
+    sphereSize: f32, 
+    invProjectionMatrix: mat4x4f, 
+    projectionMatrix: mat4x4f, 
+    viewMatrix: mat4x4f, 
+    invViewMatrix: mat4x4f, 
 }
 
 struct VertexOutput {
@@ -70,21 +70,21 @@ fn vs(
 
     let splash = particles[instance_index].splash;
 
-    var size = uniforms.sphere_size * clamp(particles[instance_index].density / restDensity * densitySizeScale, 0.1, 0.6);
+    var size = uniforms.sphereSize * clamp(particles[instance_index].density / restDensity * densitySizeScale, 0.1, 0.6);
     if (splash > 0.) {
-        size = uniforms.sphere_size * min(0.5, clamp(particles[instance_index].density / restDensity * densitySizeScale, 0.1, 1.0));
+        size = uniforms.sphereSize * min(0.5, clamp(particles[instance_index].density / restDensity * densitySizeScale, 0.1, 1.0));
     } 
 
-    let projected_velocity = (uniforms.view_matrix * vec4f(particles[instance_index].v, 0.0)).xy;
+    let projected_velocity = (uniforms.viewMatrix * vec4f(particles[instance_index].v, 0.0)).xy;
     let stretched_position = computeStretchedVertex(corner_positions[vertex_index] * size, projected_velocity, stretchStrength);
     let corner = vec3(stretched_position, 0.0) * scaleQuad(projected_velocity, size, stretchStrength);
 
     let uv = corner_positions[vertex_index] + 0.5;
 
     let real_position = particles[instance_index].position;
-    let view_position = (uniforms.view_matrix * vec4f(real_position, 1.0)).xyz;
+    let view_position = (uniforms.viewMatrix * vec4f(real_position, 1.0)).xyz;
 
-    let out_position = uniforms.projection_matrix * vec4f(view_position + corner, 1.0);
+    let out_position = uniforms.projectionMatrix * vec4f(view_position + corner, 1.0);
 
     return VertexOutput(out_position, uv);
 }

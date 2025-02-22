@@ -1,5 +1,4 @@
 import clearGrid from './clearGrid.wgsl'
-import spawnParticles from './spawnParticles.wgsl'
 import p2g_1 from './p2g_1.wgsl'
 import p2g_2 from './p2g_2.wgsl'
 import updateGrid from './updateGrid.wgsl'
@@ -25,7 +24,6 @@ export class MLSMPMSimulator {
     gridCount = 0
 
     clearGridPipeline: GPUComputePipeline
-    spawnParticlesPipeline: GPUComputePipeline
     p2g1Pipeline: GPUComputePipeline
     p2g2Pipeline: GPUComputePipeline
     updateGridPipeline: GPUComputePipeline
@@ -33,7 +31,6 @@ export class MLSMPMSimulator {
     copyPositionPipeline: GPUComputePipeline
 
     clearGridBindGroup: GPUBindGroup
-    spawnParticlesBindGroup: GPUBindGroup
     p2g1BindGroup: GPUBindGroup
     p2g2BindGroup: GPUBindGroup
     updateGridBindGroup: GPUBindGroup
@@ -63,7 +60,6 @@ export class MLSMPMSimulator {
         this.spawned = false
         this.numParticles = 0
         const clearGridModule = device.createShaderModule({ code: clearGrid });
-        const spawnParticlesModule = device.createShaderModule({ code: spawnParticles });
         const p2g1Module = device.createShaderModule({ code: p2g_1 });
         const p2g2Module = device.createShaderModule({ code: p2g_2 });
         const updateGridModule = device.createShaderModule({ code: updateGrid });
@@ -75,9 +71,9 @@ export class MLSMPMSimulator {
         const constants = {
             stiffness: 3., 
             restDensity: this.restDensity, 
-            dynamic_viscosity: 0.1, 
+            dynamicViscosity: 0.1, 
             dt: 0.2, 
-            fixed_point_multiplier: 1e7, 
+            fixedPointMultiplier: 1e7, 
         }
 
         this.clearGridPipeline = device.createComputePipeline({
@@ -87,20 +83,13 @@ export class MLSMPMSimulator {
                 module: clearGridModule, 
             }
         })
-        this.spawnParticlesPipeline = device.createComputePipeline({
-            label: "spawn particles pipeline", 
-            layout: 'auto', 
-            compute: {
-                module: spawnParticlesModule, 
-            }
-        })
         this.p2g1Pipeline = device.createComputePipeline({
             label: "p2g 1 pipeline", 
             layout: 'auto', 
             compute: {
                 module: p2g1Module, 
                 constants: {
-                    'fixed_point_multiplier': constants.fixed_point_multiplier
+                    'fixedPointMultiplier': constants.fixedPointMultiplier
                 }, 
             }
         })
@@ -110,10 +99,10 @@ export class MLSMPMSimulator {
             compute: {
                 module: p2g2Module, 
                 constants: {
-                    'fixed_point_multiplier': constants.fixed_point_multiplier, 
+                    'fixedPointMultiplier': constants.fixedPointMultiplier, 
                     'stiffness': constants.stiffness, 
-                    'rest_density': constants.restDensity, 
-                    'dynamic_viscosity': constants.dynamic_viscosity, 
+                    'restDensity': constants.restDensity, 
+                    'dynamicViscosity': constants.dynamicViscosity, 
                     'dt': constants.dt, 
                 }, 
             }
@@ -124,7 +113,7 @@ export class MLSMPMSimulator {
             compute: {
                 module: updateGridModule, 
                 constants: {
-                    'fixed_point_multiplier': constants.fixed_point_multiplier, 
+                    'fixedPointMultiplier': constants.fixedPointMultiplier, 
                     'dt': constants.dt, 
                 }, 
             }
@@ -135,7 +124,7 @@ export class MLSMPMSimulator {
             compute: {
                 module: g2pModule, 
                 constants: {
-                    'fixed_point_multiplier': constants.fixed_point_multiplier, 
+                    'fixedPointMultiplier': constants.fixedPointMultiplier, 
                     'dt': constants.dt, 
                 }, 
             }
@@ -208,14 +197,6 @@ export class MLSMPMSimulator {
             layout: this.clearGridPipeline.getBindGroupLayout(0), 
             entries: [
               { binding: 0, resource: { buffer: cellBuffer }}, 
-            ],  
-        })
-        this.spawnParticlesBindGroup = device.createBindGroup({
-            layout: this.spawnParticlesPipeline.getBindGroupLayout(0), 
-            entries: [
-              { binding: 0, resource: { buffer: particleBuffer }}, 
-              { binding: 1, resource: { buffer: this.initBoxSizeBuffer }}, 
-              { binding: 2, resource: { buffer: this.numParticlesBuffer }}
             ],  
         })
         this.p2g1BindGroup = device.createBindGroup({

@@ -1,30 +1,32 @@
 struct VertexOutput {
     @builtin(position) position: vec4f, 
     @location(0) uv: vec2f, 
-    @location(1) view_position: vec3f, 
+    @location(1) viewPosition: vec3f, 
     @location(2) splash: f32, 
+    @location(3) speed: f32, 
 }
 
 struct FragmentInput {
     @location(0) uv: vec2f, 
-    @location(1) view_position: vec3f, 
+    @location(1) viewPosition: vec3f, 
     @location(2) splash: f32, 
+    @location(3) speed: f32, 
 }
 
 struct FragmentOutput {
     @location(0) color: vec4f, 
     @location(1) depth: f32, 
     @location(2) splash: f32,
-    @builtin(frag_depth) frag_depth: f32, 
+    @builtin(frag_depth) fragDepth: f32, 
 }
 
 struct RenderUniforms {
-    texel_size: vec2f, 
-    sphere_size: f32, 
-    inv_projection_matrix: mat4x4f, 
-    projection_matrix: mat4x4f, 
-    view_matrix: mat4x4f, 
-    inv_view_matrix: mat4x4f, 
+    texelSize: vec2f, 
+    sphereSize: f32, 
+    invProjectionMatrix: mat4x4f, 
+    projectionMatrix: mat4x4f, 
+    viewMatrix: mat4x4f, 
+    invViewMatrix: mat4x4f, 
 }
 
 struct PosVel {
@@ -84,22 +86,23 @@ fn vs(
     let splash = particles[instance_index].splash;
 
     // var size = uniforms.sphere_size * clamp(particles[instance_index].density / restDensity * densitySizeScale, 1.0, 1.0);
-    var size = uniforms.sphere_size * clamp(particles[instance_index].density / restDensity * densitySizeScale, 0.1, 0.6);
+    var size = uniforms.sphereSize * clamp(particles[instance_index].density / restDensity * densitySizeScale, 0.1, 0.6);
     if (splash > 0.) {
-        size = uniforms.sphere_size * min(0.5, clamp(particles[instance_index].density / restDensity * densitySizeScale, 0.1, 1.0));
+        size = uniforms.sphereSize * min(0.5, clamp(particles[instance_index].density / restDensity * densitySizeScale, 0.1, 1.0));
     } 
-    let projected_velocity = (uniforms.view_matrix * vec4f(particles[instance_index].v, 0.0)).xy;
+    let projected_velocity = (uniforms.viewMatrix * vec4f(particles[instance_index].v, 0.0)).xy;
     let stretched_position = computeStretchedVertex(corner_positions[vertex_index] * size, projected_velocity, stretchStrength);
     let corner = vec3(stretched_position, 0.0) * scaleQuad(projected_velocity, size, stretchStrength);
 
     let uv = corner_positions[vertex_index] + 0.5;
 
     let real_position = particles[instance_index].position;
-    let view_position = (uniforms.view_matrix * vec4f(real_position, 1.0)).xyz;
+    let view_position = (uniforms.viewMatrix * vec4f(real_position, 1.0)).xyz;
 
-    let out_position = uniforms.projection_matrix * vec4f(view_position + corner, 1.0);
+    let out_position = uniforms.projectionMatrix * vec4f(view_position + corner, 1.0);
 
-    return VertexOutput(out_position, uv, view_position, splash);
+    let speed = sqrt(dot(particles[instance_index].v, (particles[instance_index].v)));
+    return VertexOutput(out_position, uv, view_position, splash, speed);
 }
 
 fn value_to_color(value: f32) -> vec3<f32> {
@@ -139,15 +142,15 @@ fn fs(input: FragmentInput) -> FragmentOutput {
     var normalz = sqrt(1.0 - r2);
     var normal = vec3(normalxy, normalz);
 
-    var radius = uniforms.sphere_size / 2;
-    var real_view_pos: vec4f = vec4f(input.view_position + normal * radius, 1.0);
-    var clip_space_pos: vec4f = uniforms.projection_matrix * real_view_pos;
-    out.frag_depth = clip_space_pos.z / clip_space_pos.w;
+    var radius = uniforms.sphereSize / 2;
+    var realViewPos: vec4f = vec4f(input.viewPosition + normal * radius, 1.0);
+    var clipSpacePos: vec4f = uniforms.projectionMatrix * realViewPos;
+    out.fragDepth = clipSpacePos.z / clipSpacePos.w;
 
-    var diffuse: f32 = max(0.0, dot(normal, normalize(vec3(1.0, 1.0, 1.0))));
-
-    out.color = mix(vec4f(0, 0, 0, 1), vec4f(1, 1, 1, 1), input.splash);
-    out.depth = real_view_pos.z;
+    let diffuse: f32 = max(0.0, dot(normal, normalize(vec3(1.0, 1.0, 1.0))));
+    let color = value_to_color(input.speed / 1.5);
+    out.color = vec4f(color * diffuse, 1.);
+    out.depth = realViewPos.z;
     out.splash = input.splash;
     return out;
 }

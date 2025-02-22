@@ -56,9 +56,9 @@ export class FluidRenderer {
             'screenWidth': canvas.width, 
         }
         const filterConstants = {
-            'depth_threshold' : radius * blurdDepthScale, 
-            'max_filter_size' : maxFilterSize, 
-            'projected_particle_constant' : (blurFilterSize * diameter * 0.05 * (canvas.height / 2)) / Math.tan(fov / 2), 
+            'depthThreshold' : radius * blurdDepthScale, 
+            'maxFilterSize' : maxFilterSize, 
+            'projectedParticleConstant' : (blurFilterSize * diameter * 0.05 * (canvas.height / 2)) / Math.tan(fov / 2), 
         }
         const renderEffectConstants = {
             'restDensity' : restDensity, 

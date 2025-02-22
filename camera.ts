@@ -26,40 +26,40 @@ export class Camera {
     constructor (canvas: HTMLCanvasElement) {
         this.canvas = canvas;
 
-        this.canvas.addEventListener("mousedown", (event: MouseEvent) => {
-            this.isDragging = true;
-            this.prevX = event.clientX;
-            this.prevY = event.clientY;
-        });
+        // this.canvas.addEventListener("mousedown", (event: MouseEvent) => {
+        //     this.isDragging = true;
+        //     this.prevX = event.clientX;
+        //     this.prevY = event.clientY;
+        // });
 
-        this.canvas.addEventListener("wheel", (event: WheelEvent) => {
-            event.preventDefault();
-            var scrollDelta = event.deltaY;
-            this.currentDistance += ((scrollDelta > 0) ? 1 : -1) * this.zoomRate;
-            if (this.currentDistance < this.minDistance) this.currentDistance = this.minDistance;
-            if (this.currentDistance > this.maxDistance) this.currentDistance = this.maxDistance;  
-            this.recalculateView()
-        })
+        // this.canvas.addEventListener("wheel", (event: WheelEvent) => {
+        //     event.preventDefault();
+        //     var scrollDelta = event.deltaY;
+        //     this.currentDistance += ((scrollDelta > 0) ? 1 : -1) * this.zoomRate;
+        //     if (this.currentDistance < this.minDistance) this.currentDistance = this.minDistance;
+        //     if (this.currentDistance > this.maxDistance) this.currentDistance = this.maxDistance;  
+        //     this.recalculateView()
+        // })
 
         this.canvas.addEventListener("mousemove", (event: MouseEvent) => {
             this.currentHoverX = event.clientX;
             this.currentHoverY = event.clientY;
-            if (this.isDragging) {
-                const deltaX = this.prevX - event.clientX;
-                const deltaY = this.prevY - event.clientY;
-                this.currentXtheta += this.sensitivity * deltaX;
-                this.currentYtheta += this.sensitivity * deltaY;
-                if (this.currentYtheta > this.maxYTheta) this.currentYtheta = this.maxYTheta
-                if (this.currentYtheta < this.minYTheta) this.currentYtheta = this.minYTheta
-                this.prevX = event.clientX;
-                this.prevY = event.clientY;
-                this.recalculateView()
-            }
+            // if (this.isDragging) {
+            //     const deltaX = this.prevX - event.clientX;
+            //     const deltaY = this.prevY - event.clientY;
+            //     this.currentXtheta += this.sensitivity * deltaX;
+            //     this.currentYtheta += this.sensitivity * deltaY;
+            //     if (this.currentYtheta > this.maxYTheta) this.currentYtheta = this.maxYTheta
+            //     if (this.currentYtheta < this.minYTheta) this.currentYtheta = this.minYTheta
+            //     this.prevX = event.clientX;
+            //     this.prevY = event.clientY;
+            //     this.recalculateView()
+            // }
         });
         
-        this.canvas.addEventListener("mouseup", () => {
-            if (this.isDragging) this.isDragging = false;
-        });
+        // this.canvas.addEventListener("mouseup", () => {
+        //     if (this.isDragging) this.isDragging = false;
+        // });
     }
 
     reset(initDistance: number, target: number[], fov: number, zoomRate: number) {
