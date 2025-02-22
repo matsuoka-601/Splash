@@ -241,7 +241,7 @@ async function main() {
 		const particle = document.getElementById("particle") as HTMLInputElement
 		sphereRenderFl = particle.checked
 		let curBoxWidthRatio = parseInt(slider.value) / 200 + 0.5
-		const minClosingSpeed = -0.010
+		const minClosingSpeed = -0.008
 		let dVal = Math.max(curBoxWidthRatio - boxWidthRatio, minClosingSpeed)
 		boxWidthRatio += dVal
 
