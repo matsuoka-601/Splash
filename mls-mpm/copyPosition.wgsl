@@ -22,12 +22,12 @@ fn updateSplash(instance_index: u32) -> f32 {
     var splashCand = sqrt(dot(particles[instance_index].v, particles[instance_index].v));
     splashCand /= densities[instance_index] / restDensity;
 
-    let lifetimeThresh = 4.;
-    let splashThresh = 2.;
+    let splashUpper = 4.;
+    let splashLower = 2.;
     let splashDecreaseRate = 0.003;
 
     var splash: f32 = posvel[instance_index].splash;
-    splash = max(max(splash - splashDecreaseRate, 0.), smoothstep(splashThresh, lifetimeThresh, splashCand));
+    splash = max(max(splash - splashDecreaseRate, 0.), smoothstep(splashLower, splashUpper, splashCand));
     posvel[instance_index].splash = splash;
     return splash;
 }
