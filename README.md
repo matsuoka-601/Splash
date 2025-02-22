@@ -15,7 +15,7 @@ In my understanding, the most well-known method for white splash generation is t
 
 Therefore, I had to find a cheaper way to generate a plausible white splash.
 
-The method I used for this project is to give each particle a splash value determined by 'particle speed / (normalized) density', and to make a 'splash map' according to that value which is blended to the final result. The splash value is determined by `smoothstep(lower, upper, speed / density)`, where `lower` and `upper` are determined experimentally. As a result, it is expected that fast and isolated particles will have high splash values.
+The method used for this project is to give each particle a splash value determined by 'particle speed / (normalized) density', and to make a 'splash map' according to that value which is blended to the final result. The splash value is determined by `smoothstep(lower, upper, speed / density)`, where `lower` and `upper` are determined experimentally. As a result, it is expected that fast and isolated particles will have high splash values.
 
 There are some implementation notes like below.
 - Limit the decreasing rate of the splash value
@@ -24,7 +24,7 @@ There are some implementation notes like below.
   - Blending a 'raw' splash map gives a bit powdery result. Therefore, the splash map is blurred using Gaussian Filter to get a more splashy result.
  
 Currently, I'm cutting some corners in my implementation like below.
-- Gaussian Filter is now used for blurring the splash map, but I should use filters like Bilateral Filter to preserve the edges.
+- Gaussian Filter is now used for blurring the splash map, but filters like Bilateral Filter should be used to preserve the edges.
 - Splash particles behind the fluid is now simply occluded, but they should be treated as the background so that they are visible even when inside the fluid.
 
 Of course, there would definitely be a better way for white splash generation. Let me know if you know it :)
