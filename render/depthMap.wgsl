@@ -2,15 +2,21 @@ struct VertexOutput {
     @builtin(position) position: vec4f, 
     @location(0) uv: vec2f, 
     @location(1) viewPosition: vec3f, 
+    @location(2) splash: f32, 
+    @location(3) speed: f32, 
 }
 
 struct FragmentInput {
     @location(0) uv: vec2f, 
     @location(1) viewPosition: vec3f, 
+    @location(2) splash: f32, 
+    @location(3) speed: f32, 
 }
 
 struct FragmentOutput {
+    // @location(0) color: vec4f, 
     @location(0) depth: f32, 
+    @location(1) splash: f32,
     @builtin(frag_depth) fragDepth: f32, 
 }
 
@@ -27,7 +33,6 @@ struct PosVel {
     position: vec3f, 
     v: vec3f, 
     density: f32, 
-    lifetime: i32, 
     splash: f32, 
 }
 
@@ -63,6 +68,7 @@ fn scaleQuad(vel: vec2f, r: f32, strength: f32) -> f32 {
 }
 
 
+
 @vertex
 fn vs(    
     @builtin(vertex_index) vertex_index: u32, 
@@ -77,7 +83,13 @@ fn vs(
         vec2(-0.5,  0.5),
     );
 
-    let size = uniforms.sphereSize * clamp(particles[instance_index].density / restDensity * densitySizeScale, 0.0, 1.0);
+    let splash = particles[instance_index].splash;
+
+    // var size = uniforms.sphere_size * clamp(particles[instance_index].density / restDensity * densitySizeScale, 1.0, 1.0);
+    var size = uniforms.sphereSize * clamp(particles[instance_index].density / restDensity * densitySizeScale, 0.1, 0.6);
+    if (splash > 0.) {
+        size = uniforms.sphereSize * min(0.5, clamp(particles[instance_index].density / restDensity * densitySizeScale, 0.1, 1.0));
+    } 
     let projected_velocity = (uniforms.viewMatrix * vec4f(particles[instance_index].v, 0.0)).xy;
     let stretched_position = computeStretchedVertex(corner_positions[vertex_index] * size, projected_velocity, stretchStrength);
     let corner = vec3(stretched_position, 0.0) * scaleQuad(projected_velocity, size, stretchStrength);
@@ -89,7 +101,33 @@ fn vs(
 
     let out_position = uniforms.projectionMatrix * vec4f(view_position + corner, 1.0);
 
-    return VertexOutput(out_position, uv, view_position);
+    let speed = sqrt(dot(particles[instance_index].v, (particles[instance_index].v)));
+    return VertexOutput(out_position, uv, view_position, splash, speed);
+}
+
+fn value_to_color(value: f32) -> vec3<f32> {
+    // let col0 = vec3f(29, 71, 158) / 256;
+    let col0 = vec3f(0, 0.4, 0.8);
+    let col1 = vec3f(35, 161, 165) / 256;
+    let col2 = vec3f(95, 254, 150) / 256;
+    let col3 = vec3f(243, 250, 49) / 256;
+    let col4 = vec3f(255, 165, 0) / 256;
+
+
+    if (0 <= value && value < 0.25) {
+        let t = value / 0.25;
+        return mix(col0, col1, t);
+    } else if (0.25 <= value && value < 0.50) {
+        let t = (value - 0.25) / 0.25;
+        return mix(col1, col2, t);
+    } else if (0.50 <= value && value < 0.75) {
+        let t = (value - 0.50) / 0.25;
+        return mix(col2, col3, t);
+    } else {
+        let t = (value - 0.75) / 0.25;
+        return mix(col3, col4, t);
+    }
+
 }
 
 @fragment
@@ -106,9 +144,13 @@ fn fs(input: FragmentInput) -> FragmentOutput {
 
     var radius = uniforms.sphereSize / 2;
     var realViewPos: vec4f = vec4f(input.viewPosition + normal * radius, 1.0);
-    var clip_space_pos: vec4f = uniforms.projectionMatrix * realViewPos;
-    out.fragDepth = clip_space_pos.z / clip_space_pos.w;
+    var clipSpacePos: vec4f = uniforms.projectionMatrix * realViewPos;
+    out.fragDepth = clipSpacePos.z / clipSpacePos.w;
 
+    let diffuse: f32 = max(0.0, dot(normal, normalize(vec3(1.0, 1.0, 1.0))));
+    let color = value_to_color(input.speed / 1.5);
+    // out.color = vec4f(color * diffuse, 1.);
     out.depth = realViewPos.z;
+    out.splash = input.splash;
     return out;
 }

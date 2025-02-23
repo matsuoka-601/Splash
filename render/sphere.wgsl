@@ -2,21 +2,18 @@ struct VertexOutput {
     @builtin(position) position: vec4f, 
     @location(0) uv: vec2f, 
     @location(1) viewPosition: vec3f, 
-    @location(2) splash: f32, 
-    @location(3) speed: f32, 
+    @location(2) speed: f32, 
 }
 
 struct FragmentInput {
     @location(0) uv: vec2f, 
     @location(1) viewPosition: vec3f, 
-    @location(2) splash: f32, 
-    @location(3) speed: f32, 
+    @location(2) speed: f32, 
 }
 
 struct FragmentOutput {
     @location(0) color: vec4f, 
     @location(1) depth: f32, 
-    @location(2) splash: f32,
     @builtin(frag_depth) fragDepth: f32, 
 }
 
@@ -102,7 +99,7 @@ fn vs(
     let out_position = uniforms.projectionMatrix * vec4f(view_position + corner, 1.0);
 
     let speed = sqrt(dot(particles[instance_index].v, (particles[instance_index].v)));
-    return VertexOutput(out_position, uv, view_position, splash, speed);
+    return VertexOutput(out_position, uv, view_position, speed);
 }
 
 fn value_to_color(value: f32) -> vec3<f32> {
@@ -149,8 +146,7 @@ fn fs(input: FragmentInput) -> FragmentOutput {
 
     let diffuse: f32 = max(0.0, dot(normal, normalize(vec3(1.0, 1.0, 1.0))));
     let color = value_to_color(input.speed / 1.5);
-    out.color = vec4f(color * diffuse, 1.);
     out.depth = realViewPos.z;
-    out.splash = input.splash;
+    out.color = vec4f(color * diffuse, 1.);
     return out;
 }

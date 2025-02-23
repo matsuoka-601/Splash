@@ -1,19 +1,19 @@
-import depthMap from './depthMap.wgsl'
 import depthFilter from './bilateral.wgsl'
 import fluid from './fluid.wgsl'
 import fullScreen from './fullScreen.wgsl'
 import thicknessMap from './thicknessMap.wgsl'
 import gaussian from './gaussian.wgsl'
+import depthMap from './depthMap.wgsl'
 import sphere from './sphere.wgsl'
 
 
 export class FluidRenderer {
-    depthMapPipeline: GPURenderPipeline
     depthFilterPipeline: GPURenderPipeline
     thicknessMapPipeline: GPURenderPipeline
     thicknessFilterPipeline: GPURenderPipeline
     splashFilterPipeline: GPURenderPipeline
     fluidPipeline: GPURenderPipeline
+    depthMapPipeline: GPURenderPipeline
     spherePipeline: GPURenderPipeline
 
     depthMapTextureView: GPUTextureView
@@ -25,12 +25,12 @@ export class FluidRenderer {
     depthTestTextureView: GPUTextureView
 
     
-    depthMapBindGroup: GPUBindGroup
     depthFilterBindGroups: GPUBindGroup[]
     thicknessMapBindGroup: GPUBindGroup
     thicknessFilterBindGroups: GPUBindGroup[]
     splashFilterBindGroups: GPUBindGroup[]
     fluidBindGroup: GPUBindGroup
+    depthMapBindGroup: GPUBindGroup
     sphereBindGroup: GPUBindGroup
 
     stretchStrengthBuffer: GPUBuffer
@@ -72,24 +72,21 @@ export class FluidRenderer {
         });
 
         const vertexModule = device.createShaderModule({ code: fullScreen })
-        const depthMapModule = device.createShaderModule({ code: depthMap })
         const depthFilterModule = device.createShaderModule({ code: depthFilter })
         const fluidModule = device.createShaderModule({ code: fluid })
+        const depthMapModule = device.createShaderModule({ code: depthMap })
         const sphereModule = device.createShaderModule({ code: sphere })
         const thicknessMapModule = device.createShaderModule({ code: thicknessMap })
         const thicknessFilterModule = device.createShaderModule({ code: gaussian })
 
         // pipelines
-        this.spherePipeline = device.createRenderPipeline({
-            label: 'ball pipeline', 
+        this.depthMapPipeline = device.createRenderPipeline({
+            label: 'depthMap pipeline', 
             layout: 'auto', 
-            vertex: { module: sphereModule, constants: renderEffectConstants }, 
+            vertex: { module: depthMapModule, constants: renderEffectConstants }, 
             fragment: {
-                module: sphereModule, 
+                module: depthMapModule, 
                 targets: [
-                    {
-                        format: presentationFormat, 
-                    }, 
                     {
                         format: 'r32float',
                     },
@@ -107,23 +104,26 @@ export class FluidRenderer {
                 format: 'depth32float'
             }
         })
-        this.depthMapPipeline = device.createRenderPipeline({
-            label: 'depth map pipeline', 
+        this.spherePipeline = device.createRenderPipeline({
+            label: 'sphere pipeline', 
             layout: 'auto', 
-            vertex: { module: depthMapModule, constants: renderEffectConstants },
+            vertex: { module: sphereModule, constants: renderEffectConstants }, 
             fragment: {
-                module: depthMapModule,
+                module: sphereModule, 
                 targets: [
+                    {
+                        format: presentationFormat, 
+                    }, 
                     {
                         format: 'r32float',
                     },
-                ],
-            },
+                ]
+            }, 
             primitive: {
                 topology: 'triangle-list', 
             },
             depthStencil: {
-                depthWriteEnabled: true,
+                depthWriteEnabled: true, 
                 depthCompare: 'less',
                 format: 'depth32float'
             }
@@ -328,15 +328,6 @@ export class FluidRenderer {
         device.queue.writeBuffer(this.timeBuffer, 0, timeValues)
 
         // bindGroup
-        this.depthMapBindGroup = device.createBindGroup({
-            label: 'depth map bind group', 
-            layout: this.depthMapPipeline.getBindGroupLayout(0),  
-            entries: [
-              { binding: 0, resource: { buffer: posvelBuffer }},
-              { binding: 1, resource: { buffer: renderUniformBuffer }},
-              { binding: 2, resource: { buffer: this.stretchStrengthBuffer }}
-            ]
-        })
         this.depthFilterBindGroups = []
         this.depthFilterBindGroups = [
             device.createBindGroup({
@@ -430,6 +421,16 @@ export class FluidRenderer {
             ],
         })
 
+        this.depthMapBindGroup = device.createBindGroup({
+            label: 'depthMap bind group', 
+            layout: this.depthMapPipeline.getBindGroupLayout(0),  
+            entries: [
+                { binding: 0, resource: { buffer: posvelBuffer }},
+                { binding: 1, resource: { buffer: renderUniformBuffer }},
+                { binding: 2, resource: { buffer: this.stretchStrengthBuffer }}, 
+            ]
+        })
+
         this.sphereBindGroup = device.createBindGroup({
             label: 'sphere bind group', 
             layout: this.spherePipeline.getBindGroupLayout(0),  
@@ -463,7 +464,7 @@ export class FluidRenderer {
                 colorAttachments: [
                     {
                         view: this.tmpDepthMapTextureView, 
-                        clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+                        clearValue: { r: 1e6, g: 0.0, b: 0.0, a: 1.0 },
                         loadOp: 'clear',
                         storeOp: 'store',
                     },
@@ -473,7 +474,7 @@ export class FluidRenderer {
                 colorAttachments: [
                     {
                         view: this.depthMapTextureView, 
-                        clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+                        clearValue: { r: 1e6, g: 0.0, b: 0.0, a: 1.0 },
                         loadOp: 'clear',
                         storeOp: 'store',
                     },
@@ -548,14 +549,8 @@ export class FluidRenderer {
             ],
         }
 
-        const spherePassDescriptor: GPURenderPassDescriptor = {
+        const depthMapPassDescriptor: GPURenderPassDescriptor = {
             colorAttachments: [
-                {
-                    view: context.getCurrentTexture().createView(),
-                    clearValue: { r: 0.7, g: 0.7, b: 0.75, a: 1.0 },
-                    loadOp: 'clear',
-                    storeOp: 'store',
-                },
                 {
                     view: this.depthMapTextureView,
                     clearValue: { r: 1e6, g: 0.0, b: 0.0, a: 1.0 }, // 背景は十分大きい深さの値でいいか？
@@ -577,17 +572,35 @@ export class FluidRenderer {
             },
         }
 
+        const spherePassDescriptor: GPURenderPassDescriptor = {
+            colorAttachments: [
+                {
+                    view: context.getCurrentTexture().createView(),
+                    clearValue: { r: 0.7, g: 0.7, b: 0.75, a: 1.0 },
+                    loadOp: 'clear',
+                    storeOp: 'store',
+                },
+                {
+                    view: this.depthMapTextureView,
+                    clearValue: { r: 1e6, g: 0.0, b: 0.0, a: 1.0 }, // 背景は十分大きい深さの値でいいか？
+                    loadOp: 'clear',
+                    storeOp: 'store',
+                },
+            ],
+            depthStencilAttachment: {
+                view: this.depthTestTextureView,
+                depthClearValue: 1.0,
+                depthLoadOp: 'clear',
+                depthStoreOp: 'store',
+            },
+        }
+
         if (!sphereRenderFl) {
-            // const depthMapPassEncoder = commandEncoder.beginRenderPass(depthMapPassDescriptor);
-            // depthMapPassEncoder.setBindGroup(0, this.depthMapBindGroup);
-            // depthMapPassEncoder.setPipeline(this.depthMapPipeline);
-            // depthMapPassEncoder.draw(6, numParticles);
-            // depthMapPassEncoder.end();
-            const spherePassEncoder = commandEncoder.beginRenderPass(spherePassDescriptor);
-            spherePassEncoder.setBindGroup(0, this.sphereBindGroup);
-            spherePassEncoder.setPipeline(this.spherePipeline);
-            spherePassEncoder.draw(6, numParticles);
-            spherePassEncoder.end();
+            const depthMapPassEncoder = commandEncoder.beginRenderPass(depthMapPassDescriptor);
+            depthMapPassEncoder.setBindGroup(0, this.depthMapBindGroup);
+            depthMapPassEncoder.setPipeline(this.depthMapPipeline);
+            depthMapPassEncoder.draw(6, numParticles);
+            depthMapPassEncoder.end();
             for (var iter = 0; iter < 4; iter++) {
                 const depthFilterPassEncoderX = commandEncoder.beginRenderPass(depthFilterPassDescriptors[0]);
                 depthFilterPassEncoderX.setBindGroup(0, this.depthFilterBindGroups[0]);
