@@ -174,7 +174,7 @@ async function main() {
 	let mlsmpmInitBoxSizes = [[35, 40, 60], [40, 45, 75], [45, 45, 90], [55, 55, 100]]
 	let mlsmpmInitDistances = [38, 45, 50, 60]
 	let mouseRadiuses = [10, 10, 10, 10]
-	let stretchStrength = [1., 1., 1., 1.]
+	let stretchStrength = [0.5, 0.5, 0.5, 0.5]
 
 	const canvasElement = document.getElementById("fluidCanvas") as HTMLCanvasElement;
 	// シミュレーション，カメラの初期化
