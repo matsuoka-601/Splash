@@ -54,22 +54,6 @@ function sleep(ms: number): Promise<void> {
 
 async function main() {
 	const { canvas, device, presentationFormat, context } = await init();
-
-	// ボタン押下の監視
-	let numberButtonForm = document.getElementById('number-button') as HTMLFormElement;
-	let numberButtonPressed = false;
-	let numberButtonPressedButton = "1"
-	numberButtonForm.addEventListener('change', function(event) {
-		const target = event.target as HTMLInputElement
-		if (target?.name === 'options') {
-			numberButtonPressed = true
-			numberButtonPressedButton = target.value
-		}
-	}); 
-	const smallValue = document.getElementById("small-value") as HTMLSpanElement;
-	const mediumValue = document.getElementById("medium-value") as HTMLSpanElement;
-	const largeValue = document.getElementById("large-value") as HTMLSpanElement;
-	const veryLargeValue = document.getElementById("very-large-value") as HTMLSpanElement;
 	
 
 	console.log("initialization done")
@@ -205,10 +189,14 @@ async function main() {
 		errorLog.textContent = reason;
 	});
 
-	let paramsIdx = 1
-	let initBoxSize = mlsmpmInitBoxSizes[paramsIdx]
-	let realBoxSize = [...initBoxSize];
+	let paramsIdx = -1
+	let initBoxSize = [0, 0, 0]
+	let realBoxSize = [0, 0, 0]
 
+	const smallValue = document.getElementById("small-value") as HTMLSpanElement;
+	const mediumValue = document.getElementById("medium-value") as HTMLSpanElement;
+	const largeValue = document.getElementById("large-value") as HTMLSpanElement;
+	const veryLargeValue = document.getElementById("very-large-value") as HTMLSpanElement;
 	smallValue.textContent = "40,000"
 	mediumValue.textContent = "60,000"
 	largeValue.textContent = "100,000"
@@ -223,8 +211,10 @@ async function main() {
 	async function frame() {
 		const start = performance.now();
 
-		if (numberButtonPressed || startFl) { 
-			paramsIdx = parseInt(numberButtonPressedButton)
+		const form = document.getElementById("number-button") as HTMLFormElement;
+		const selectedValue = new FormData(form).get("options") as string;
+		if (Number(selectedValue) != paramsIdx) {
+			paramsIdx = Number(selectedValue)
 			initBoxSize = mlsmpmInitBoxSizes[paramsIdx]
 			mlsmpmSimulator.reset(initBoxSize, mlsmpmNumParticleParams[paramsIdx])
 			camera.reset(mlsmpmInitDistances[paramsIdx], [initBoxSize[0] / 2, initBoxSize[1] / 2, initBoxSize[2] / 2], 
@@ -232,10 +222,7 @@ async function main() {
 			realBoxSize = [...initBoxSize]
 			let slider = document.getElementById("slider") as HTMLInputElement
 			slider.value = "100"
-			numberButtonPressed = false
-			startFl = false
 		}
-
 
 		const slider = document.getElementById("slider") as HTMLInputElement
 		const particle = document.getElementById("particle") as HTMLInputElement
@@ -273,3 +260,4 @@ async function main() {
 }
 
 main()
+
