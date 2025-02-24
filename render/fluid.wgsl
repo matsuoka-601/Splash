@@ -37,8 +37,8 @@ fn getViewPosFromTexCoord(tex_coord: vec2f, iuv: vec2f) -> vec3f {
 
 @fragment
 fn fs(input: FragmentInput) -> @location(0) vec4f {
-    var depth: f32 = abs(textureLoad(texture, vec2u(input.iuv), 0).r);
-    var splash: vec4f = textureLoad(splashTexture, vec2u(input.iuv), 0);
+    let depth: f32 = abs(textureLoad(texture, vec2u(input.iuv), 0).r);
+    let splash: vec4f = textureLoad(splashTexture, vec2u(input.iuv), 0);
 
     let bgColor: vec3f = vec3f(0.7, 0.7, 0.75);
 
@@ -46,20 +46,16 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
         return mix(vec4f(bgColor, 1.), vec4f(1.), splash.x);
     }
 
-    var viewPos: vec3f = computeViewPosFromUVDepth(input.uv, depth); // z は負
-    var worldPos: vec3f = (uniforms.invViewMatrix * vec4f(viewPos, 1.0)).xyz; 
+    let viewPos: vec3f = computeViewPosFromUVDepth(input.uv, depth); // z は負
+    let worldPos: vec3f = (uniforms.invViewMatrix * vec4f(viewPos, 1.0)).xyz; 
 
     var ddx: vec3f = getViewPosFromTexCoord(input.uv + vec2f(uniforms.texelSize.x, 0.), input.iuv + vec2f(1.0, 0.0)) - viewPos; 
     var ddy: vec3f = getViewPosFromTexCoord(input.uv + vec2f(0., uniforms.texelSize.y), input.iuv + vec2f(0.0, 1.0)) - viewPos; 
-    var ddx2: vec3f = viewPos - getViewPosFromTexCoord(input.uv + vec2f(-uniforms.texelSize.x, 0.), input.iuv + vec2f(-1.0, 0.0));
-    var ddy2: vec3f = viewPos - getViewPosFromTexCoord(input.uv + vec2f(0., -uniforms.texelSize.y), input.iuv + vec2f(0.0, -1.0));
+    let ddx2: vec3f = viewPos - getViewPosFromTexCoord(input.uv + vec2f(-uniforms.texelSize.x, 0.), input.iuv + vec2f(-1.0, 0.0));
+    let ddy2: vec3f = viewPos - getViewPosFromTexCoord(input.uv + vec2f(0., -uniforms.texelSize.y), input.iuv + vec2f(0.0, -1.0));
 
-    if (abs(ddx.z) > abs(ddx2.z)) {
-        ddx = ddx2; 
-    }
-    if (abs(ddy.z) > abs(ddy2.z)) {
-        ddy = ddy2;
-    }
+    ddx = select(ddx, ddx2, abs(ddx.z) > abs(ddx2.z));
+    ddy = select(ddy, ddy2, abs(ddy.z) > abs(ddy2.z));
 
     var normal: vec3f = -normalize(cross(ddx, ddy)); 
     var rayDir = normalize(viewPos);
