@@ -25,6 +25,7 @@ fn updateSplash(instance_index: u32) -> f32 {
     let splashUpper = 4.;
     let splashLower = 2.;
     let splashDecreaseRate = 0.003;
+    // let splashDecreaseRate = 1.;
 
     var splash: f32 = posvel[instance_index].splash;
     splash = max(max(splash - splashDecreaseRate, 0.), smoothstep(splashLower, splashUpper, splashCand));
