@@ -60,7 +60,7 @@ fn updateGrid(@builtin(global_invocation_id) id: vec3<u32>) {
         var mouseCellIndex: u32 = 1000000000; // 適当な invalid 値
         var cellSquareDistToMouse: f32 = 1e9;
         var forceDir = vec3f(0.);
-        if (depth < 1e5) {
+        if (depth < 1e4) {
             let mouseViewPos = getViewPosFromTexCoord(uv, iuv);
             let mouseWorldPos = uniforms.invViewMatrix * vec4f(mouseViewPos, 1.); // 位置なので 1
             let mouseCellPos: vec3i = vec3i(floor(mouseWorldPos).xyz);
@@ -68,14 +68,8 @@ fn updateGrid(@builtin(global_invocation_id) id: vec3<u32>) {
                                 u32(mouseCellPos.y) * u32(initBoxSize.z) + 
                                 u32(mouseCellPos.z);
             let center = realBoxSize / 2;
-            // forceDir = normalize(mouseWorldPos.xyz - center); // ここを変えてみよう
             // 速度が 0 よりおおきいときのみ
-            if (dot(mouseInfo.mouseVel, mouseInfo.mouseVel) > 0.) {
-                forceDir = (uniforms.invViewMatrix * vec4f(mouseInfo.mouseVel, 0.0, 0)).xyz; // 方向なので 0
-            } else {
-                forceDir = vec3f(0.);
-            }
-
+            forceDir = select(vec3f(0.), (uniforms.invViewMatrix * vec4f(mouseInfo.mouseVel, 0.0, 0)).xyz, dot(mouseInfo.mouseVel, mouseInfo.mouseVel) > 0.);
             var x: f32 = f32(i32(id.x) / i32(initBoxSize.z) / i32(initBoxSize.y));
             var y: f32 = f32((i32(id.x) / i32(initBoxSize.z)) % i32(initBoxSize.y));
             var z: f32 = f32(i32(id.x) % i32(initBoxSize.z));
@@ -94,17 +88,11 @@ fn updateGrid(@builtin(global_invocation_id) id: vec3<u32>) {
                 decodeFixedPoint(cells[id.x].vz)
             );
             floatV /= decodeFixedPoint(cells[id.x].mass);
-            
-            if (cellSquareDistToMouse < r * r) { 
-                let strength = (r * r - cellSquareDistToMouse) / (r * r) * 0.15;
-                cells[id.x].vx = encodeFixedPoint(floatV.x + strength * forceDir.x); 
-                cells[id.x].vy = encodeFixedPoint(floatV.y + strength * forceDir.y - 0.30 * dt); 
-                cells[id.x].vz = encodeFixedPoint(floatV.z + strength * forceDir.z); 
-            } else {
-                cells[id.x].vx = encodeFixedPoint(floatV.x);
-                cells[id.x].vy = encodeFixedPoint(floatV.y - 0.30 * dt); 
-                cells[id.x].vz = encodeFixedPoint(floatV.z);
-            } 
+
+            let strength = smoothstep(r * r, 0., cellSquareDistToMouse) * 0.15;   
+            cells[id.x].vx = encodeFixedPoint(floatV.x + strength * forceDir.x); 
+            cells[id.x].vy = encodeFixedPoint(floatV.y + strength * forceDir.y - 0.30 * dt); 
+            cells[id.x].vz = encodeFixedPoint(floatV.z + strength * forceDir.z); 
 
             var x: i32 = i32(id.x) / i32(initBoxSize.z) / i32(initBoxSize.y);
             var y: i32 = (i32(id.x) / i32(initBoxSize.z)) % i32(initBoxSize.y);

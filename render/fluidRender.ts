@@ -285,7 +285,7 @@ export class FluidRenderer {
         filterXUniformsViews.set([1.0, 0.0])
         filterYUniformsViews.set([0.0, 1.0])
         thicknessFilterSizeViews.set([30])
-        splashFilterSizeViews.set([3])
+        splashFilterSizeViews.set([4])
         const filterXUniformBuffer = device.createBuffer({
             label: 'filter uniform buffer', 
             size: filterXUniformsValues.byteLength, 
