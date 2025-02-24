@@ -8,6 +8,9 @@ Works on your browsers which support WebGPU (Chrome, Edge etc. Safari is also su
 ![splash-trim](https://github.com/user-attachments/assets/5b8ed8a2-6e55-45eb-8df2-149b20ad8e4a)
 
 **MLS-MPM (Moving Least Squares Material Point Method)** is used for the simulation and **Screen-Space Fluid Rendering** is used for the rendering. For more detail, see `README.md` in [WebGPU-Ocean](https://github.com/matsuoka-601/webgpu-ocean).
+## Demo Video
+[![Demo Video](http://img.youtube.com/vi/-N0wS_CBOi4/0.jpg)](https://www.youtube.com/watch?v=-N0wS_CBOi4)
+
 ## On the algorithm for white splash generation
 In my understanding, the most well-known method for white splash generation is the one presented in the paper [Unified Spray, Foam and Bubbles for Particle-Based Fluids](https://cg.informatik.uni-freiburg.de/publications/2012_CGI_sprayFoamBubbles.pdf) by Markus et al. in 2012. This method actually generates a very high-quality and physically accurate white splash. However, I thought this method is a bit expensive for real-time fluid simulations on browsers for some reasons like below.
 - Requires neighborhood search
