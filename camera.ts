@@ -94,9 +94,13 @@ export class Camera {
         mat4.translate(mat, [0, 0, this.currentDistance], mat)
         var position = mat4.multiply(mat, [0, 0, 0, 1])
 
+        position[1] -= 3;
+        let target = this.target;
+        target[1] -= 3;
+
         const view = mat4.lookAt(
             [position[0], position[1], position[2]], // position
-            this.target, // target
+            target, // target
             [0, 1, 0], // up
         )
 
