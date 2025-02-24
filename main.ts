@@ -101,32 +101,9 @@ async function main() {
 			);
 		}
 	}
-	let waterTexture: GPUTexture;
-	{
-		const response = await fetch('water.png');
-		const imageBitmap = await createImageBitmap(await response.blob());
-		
-		waterTexture = device.createTexture({
-			size: [imageBitmap.width, imageBitmap.height, 1],
-			format: 'rgba8unorm',
-			usage:
-			GPUTextureUsage.TEXTURE_BINDING |
-			GPUTextureUsage.COPY_DST |
-			GPUTextureUsage.RENDER_ATTACHMENT,
-		});
-		device.queue.copyExternalImageToTexture(
-			{ source: imageBitmap },
-			{ texture: waterTexture },
-			[imageBitmap.width, imageBitmap.height]
-		);
-	}
-
 
 	const cubemapTextureView = cubemapTexture.createView({
 		dimension: 'cube',
-	});
-	const waterTextureView = waterTexture.createView({
-		dimension: "2d"  // ここを修正
 	});
 	console.log("cubemap initialization done")
 
@@ -175,7 +152,7 @@ async function main() {
 	const depthMapTextureView = depthMapTexture.createView()
 	const mlsmpmSimulator = new MLSMPMSimulator(particleBuffer, posvelBuffer, mlsmpmDiameter, device, renderUniformBuffer, depthMapTextureView, canvas)
 	const mlsmpmRenderer = new FluidRenderer(device, canvas, presentationFormat, mlsmpmRadius, mlsmpmFov, posvelBuffer, renderUniformBuffer, 
-		cubemapTextureView, depthMapTextureView, waterTextureView, mlsmpmSimulator.restDensity)
+		cubemapTextureView, depthMapTextureView, mlsmpmSimulator.restDensity)
 
 	console.log("simulator initialization done")
 

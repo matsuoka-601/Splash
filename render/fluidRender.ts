@@ -34,16 +34,14 @@ export class FluidRenderer {
     sphereBindGroup: GPUBindGroup
 
     stretchStrengthBuffer: GPUBuffer
-    timeBuffer: GPUBuffer
 
     device: GPUDevice
 
-    time = 0
     constructor(
         device: GPUDevice, canvas: HTMLCanvasElement, presentationFormat: GPUTextureFormat,
         radius: number, fov: number, posvelBuffer: GPUBuffer, 
         renderUniformBuffer: GPUBuffer, cubemapTextureView: GPUTextureView, depthMapTextureView: GPUTextureView, 
-        waterTextureView: GPUTextureView, restDensity: number
+        restDensity: number
     ) {
         this.device = device
         const maxFilterSize = 100
@@ -284,13 +282,10 @@ export class FluidRenderer {
         const filterYUniformsViews = new Float32Array(filterYUniformsValues) 
         const thicknessFilterSizeViews = new Int32Array(thicknessFilterSizeValues) 
         const splashFilterSizeViews = new Int32Array(splashFilterSizeValues) 
-        const timeViews = new Float32Array(timeValues)
         filterXUniformsViews.set([1.0, 0.0])
         filterYUniformsViews.set([0.0, 1.0])
         thicknessFilterSizeViews.set([30])
         splashFilterSizeViews.set([4])
-        timeViews.set([0])
-        this.time = 0
         const filterXUniformBuffer = device.createBuffer({
             label: 'filter uniform buffer', 
             size: filterXUniformsValues.byteLength, 
@@ -316,16 +311,10 @@ export class FluidRenderer {
             size: 4, 
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
-        this.timeBuffer = device.createBuffer({
-            label: 'time buffer', 
-            size: 4, 
-            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-        })
         device.queue.writeBuffer(filterXUniformBuffer, 0, filterXUniformsValues);
         device.queue.writeBuffer(filterYUniformBuffer, 0, filterYUniformsValues);
         device.queue.writeBuffer(thicknessFilterSizeBuffer, 0, thicknessFilterSizeValues);
         device.queue.writeBuffer(splashFilterSizeBuffer, 0, splashFilterSizeValues);
-        device.queue.writeBuffer(this.timeBuffer, 0, timeValues)
 
         // bindGroup
         this.depthFilterBindGroups = []
@@ -415,9 +404,7 @@ export class FluidRenderer {
               { binding: 2, resource: { buffer: renderUniformBuffer } },
               { binding: 3, resource: this.thicknessTextureView },
               { binding: 4, resource: cubemapTextureView }, 
-              { binding: 5, resource: waterTextureView }, 
-              { binding: 6, resource: this.splashTextureView }, 
-              { binding: 7, resource: { buffer: this.timeBuffer } }
+              { binding: 5, resource: this.splashTextureView }, 
             ],
         })
 
@@ -446,18 +433,12 @@ export class FluidRenderer {
     execute(context: GPUCanvasContext, commandEncoder: GPUCommandEncoder, 
         numParticles: number, sphereRenderFl: boolean, stretchStrength: number) 
     {
-        this.time += 0.3
-        if (this.time > 50.0) {
-            this.time = 0
-        }
         const stretchStrengthValues = new ArrayBuffer(4)
         const timeValues = new ArrayBuffer(4)
         const stretchStrengthViews = new Float32Array(stretchStrengthValues)
         const timeViews = new Float32Array(timeValues)
         stretchStrengthViews.set([stretchStrength])
-        timeViews.set([this.time])
         this.device.queue.writeBuffer(this.stretchStrengthBuffer, 0, stretchStrengthViews)
-        this.device.queue.writeBuffer(this.timeBuffer, 0, timeViews)
 
         const depthFilterPassDescriptors: GPURenderPassDescriptor[] = [
             {

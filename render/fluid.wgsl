@@ -3,9 +3,7 @@
 @group(0) @binding(2) var<uniform> uniforms: RenderUniforms;
 @group(0) @binding(3) var thicknessTexture: texture_2d<f32>;
 @group(0) @binding(4) var envmapTexture: texture_cube<f32>;
-@group(0) @binding(5) var waterTexture: texture_2d<f32>;
-@group(0) @binding(6) var splashTexture: texture_2d<f32>;
-@group(0) @binding(7) var<uniform> time: f32;
+@group(0) @binding(5) var splashTexture: texture_2d<f32>;
 
 struct RenderUniforms {
     texelSize: vec2f, 
@@ -93,19 +91,8 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
         return vec4f(mix(finalColor, vec3f(0.9), 0.6), 1.0);
     }
 
-    // return vec4f(finalColor, 1.0);
-    // return vec4f(textureSampleLevel(water_texture, texture_sampler, worldPos.xz / 10 + vec2f(0.1, 0.0), 0.).rgb, 1.);
-    var foamColor = textureSampleLevel(waterTexture, textureSampler, worldPos.xz / 100 + vec2f(0.3, 0.3) - vec2f(splash.x, splash.z) / 30 * time * 0., 0.);
-    var foamRatio = foamColor.a * 1.0;
-    finalColor = mix(finalColor, vec3f(1.0), 0.);
     finalColor = mix(finalColor, vec3f(0.9, 0.9, 0.92), splash.x); // splash : [0, 1]
     return vec4f(finalColor, 1.0);
-    // return foamColor;
-    // return vec4f(velocity.z, 0, 0, 0);
-
-    // velocity = normalize(velocity);
-    // return vec4f(0.5 * velocity + 0.5);
-
     // return vec4f(viewPos.y * 100, 0, 0, 1.0);
 
     // 法線
