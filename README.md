@@ -1,15 +1,13 @@
 # Splash
 Real-time fluid simulation with a white splash🌊 implemented in WebGPU. 
 
-Works on your browsers which support WebGPU (Chrome, Edge etc. Safari is also supported when WebGPU feature flag is enabled). 
+Works on your browsers which support WebGPU (Chrome, Edge etc. Safari is also supported when WebGPU feature flag is enabled). To run 'Very Large' mode, you might need a dedicated GPU. (In my environment, RTX 3060 Laptop handles 'Very Large' mode smoothly)
 
 [Try Demo Here!](https://splash-fluid.netlify.app/)
 
 ![splash-trim](https://github.com/user-attachments/assets/5b8ed8a2-6e55-45eb-8df2-149b20ad8e4a)
 
 **MLS-MPM (Moving Least Squares Material Point Method)** is used for the simulation and **Screen-Space Fluid Rendering** is used for the rendering. For more detail, see `README.md` in [WebGPU-Ocean](https://github.com/matsuoka-601/webgpu-ocean).
-
-To run 'Very Large' mode, you might need a dedicated GPU. (In my environment, RTX 3060 Laptop handles 'Very Large' mode smoothly)
 ## Demo Video
 [![Demo Video](http://img.youtube.com/vi/-N0wS_CBOi4/0.jpg)](https://www.youtube.com/watch?v=-N0wS_CBOi4)
 
