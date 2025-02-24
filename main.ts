@@ -33,7 +33,7 @@ async function init() {
 
 	// const { devicePixelRatio } = window
 	// let devicePixelRatio  = 5.0;
-	let devicePixelRatio  = 0.7;
+	let devicePixelRatio  = 0.6;
 	canvas.width = devicePixelRatio * canvas.clientWidth
 	canvas.height = devicePixelRatio * canvas.clientHeight
 
@@ -131,9 +131,9 @@ async function main() {
 	console.log("buffer allocating done")
 
 
-	let mlsmpmNumParticleParams = [40000, 60000, 100000, 180000]
-	let mlsmpmInitBoxSizes = [[35, 40, 60], [40, 45, 75], [45, 50, 90], [55, 55, 100]]
-	let mlsmpmInitDistances = [38, 45, 50, 60]
+	let mlsmpmNumParticleParams = [40000, 65000, 100000, 180000]
+	let mlsmpmInitBoxSizes = [[35, 40, 60], [44, 45, 78], [45, 50, 90], [55, 55, 100]]
+	let mlsmpmInitDistances = [38, 46, 50, 60]
 	let mouseRadiuses = [10, 10, 12, 14]
 	let stretchStrength = [0.5, 0.5, 0.5, 0.5]
 
