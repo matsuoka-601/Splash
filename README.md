@@ -5,7 +5,7 @@ Works on your browsers which support WebGPU (Chrome, Edge etc. Safari is also su
 
 [Try Demo Here!](https://splash-fluid.netlify.app/)
 
-![スクリーンショット 2025-02-22 212513](https://github.com/user-attachments/assets/aa489ca7-b54a-4166-aeb0-7716e6d62e72)
+![splash-trim](https://github.com/user-attachments/assets/5b8ed8a2-6e55-45eb-8df2-149b20ad8e4a)
 
 **MLS-MPM (Moving Least Squares Material Point Method)** is used for the simulation and **Screen-Space Fluid Rendering** is used for the rendering. For more detail, see `README.md` in [WebGPU-Ocean](https://github.com/matsuoka-601/webgpu-ocean).
 ## On the algorithm for white splash generation
