@@ -285,7 +285,7 @@ export class FluidRenderer {
         filterXUniformsViews.set([1.0, 0.0])
         filterYUniformsViews.set([0.0, 1.0])
         thicknessFilterSizeViews.set([15])
-        let splashFilterSize = Math.max(0.3 * diameter * 0.05 * (canvas.height / 2) / Math.tan(fov / 2), 2);
+        let splashFilterSize = Math.max(0.25 * diameter * 0.05 * (canvas.height / 2) / Math.tan(fov / 2), 2);
         console.log(splashFilterSize)
         splashFilterSizeViews.set([splashFilterSize])
         const filterXUniformBuffer = device.createBuffer({
@@ -616,7 +616,7 @@ export class FluidRenderer {
                 thicknessFilterPassEncoderY.end(); 
             }
 
-            for (var iter = 0; iter < 2; iter++) {
+            for (var iter = 0; iter < 3; iter++) {
                 const splashFilterPassEncoderX = commandEncoder.beginRenderPass(splashFilterPassDescriptors[0]);
                 splashFilterPassEncoderX.setBindGroup(0, this.splashFilterBindGroups[0]);
                 splashFilterPassEncoderX.setPipeline(this.splashFilterPipeline);
