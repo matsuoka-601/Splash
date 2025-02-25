@@ -120,7 +120,7 @@ export class Camera {
         let mouseVelocityX = mousePlaneX - prevMousePlaneX
         let mouseVelocityY = mousePlaneY - prevMousePlaneY
         // 適当に clamp
-        let clampValue = 3
+        let clampValue = 4.
         if (mouseVelocityX > clampValue) mouseVelocityX = clampValue;
         if (mouseVelocityX < -clampValue) mouseVelocityX = -clampValue;
         if (mouseVelocityY > clampValue) mouseVelocityY = clampValue;
