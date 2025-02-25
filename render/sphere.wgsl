@@ -84,9 +84,6 @@ fn vs(
 
     // var size = uniforms.sphere_size * clamp(particles[instance_index].density / restDensity * densitySizeScale, 1.0, 1.0);
     var size = uniforms.sphereSize * clamp(particles[instance_index].density / restDensity * densitySizeScale, 0.1, 0.6);
-    if (splash > 0.) {
-        size = uniforms.sphereSize * min(0.5, clamp(particles[instance_index].density / restDensity * densitySizeScale, 0.1, 1.0));
-    } 
     let projected_velocity = (uniforms.viewMatrix * vec4f(particles[instance_index].v, 0.0)).xy;
     let stretched_position = computeStretchedVertex(corner_positions[vertex_index] * size, projected_velocity, stretchStrength);
     let corner = vec3(stretched_position, 0.0) * scaleQuad(projected_velocity, size, stretchStrength);
