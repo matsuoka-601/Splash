@@ -89,6 +89,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
 
     finalColor = mix(finalColor, vec3f(0.9, 0.9, 0.92), splash.x); // splash : [0, 1]
     return vec4f(finalColor, 1.0);
+    // return vec4f(pow(finalColor, vec3(1.0 / 0.8)), 1.);
     // return vec4f(viewPos.y * 100, 0, 0, 1.0);
 
     // 法線
