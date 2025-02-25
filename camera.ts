@@ -119,10 +119,14 @@ export class Camera {
         // これはスケールも重要なので正規化してはいけない
         let mouseVelocityX = mousePlaneX - prevMousePlaneX
         let mouseVelocityY = mousePlaneY - prevMousePlaneY
+        // 適当に clamp
+        if (mouseVelocityX > 20) mouseVelocityX = 20;
+        if (mouseVelocityX < -20) mouseVelocityX = -20;
+        if (mouseVelocityY > 20) mouseVelocityY = 20;
+        if (mouseVelocityY < -20) mouseVelocityY = -20;
         let mouseViewVelocity = [mouseVelocityX, mouseVelocityY, 0, 0]
 
-        let velX = (this.currentHoverX - this.prevHoverX) / this.canvas.width * (this.canvas.width / this.canvas.height);
-        let velY = -(this.currentHoverY - this.prevHoverY) / this.canvas.height;
+
 
         // ワールド座標に直すのはコンピュートシェーダーで
         return mouseViewVelocity
