@@ -73,7 +73,7 @@ export class Camera {
         this.minYTheta = -0.99 * Math.PI / 2.
         this.sensitivity = 0.005
         this.currentDistance = initDistance
-        this.maxDistance = 2. * this.currentDistance
+        this.maxDistance = 1.3 * this.currentDistance
         this.minDistance = 0.8 * this.currentDistance
         this.target = target
         this.fov = fov
