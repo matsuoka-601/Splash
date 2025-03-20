@@ -9,4 +9,5 @@
 
 The simulation and rendering is implemented in WebGPU. The Simulation is based on an algorithm called **MLS-MPM (Moving Least Squared Material Point Method)** and the rendering is based on **Screen-Space Fluid Rendering**. For more detail, see [my article on Codrops](https://tympanus.net/codrops/2025/02/26/webgpu-fluid-simulations-high-performance-real-time-rendering/).
 ## Narrow-Range Filter for Depth Smoothing
-## Shadows using Raymarching
+## Shadows Using Raymarching
+## Single Simulation Substep
