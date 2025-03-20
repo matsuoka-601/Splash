@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Splash</title>
+    <style>
+      body, html {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overscroll-behavior: none; 
+        overflow: hidden; 
+      }
+      
+      canvas {
+        width: 100%;
+        height: 100%;
+      }
+
+      #ui-container {
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 300px; 
+        margin: 20px; 
+      }
+
+      #number-container {
+        position: fixed; 
+        top: 0; 
+        right: 0; 
+        margin: 20px;
+        margin-right: 10px;
+        font-size: 15px;
+        width: 270px;
+      }
+
+      #debug-info {
+        position: fixed; 
+      }
+      #howto-container {
+        position: fixed; 
+        bottom: 0; 
+        left: 0; 
+        width: 300px; 
+        margin: 20px; 
+        font-size: small;
+      }
+      #github-link {
+        position:fixed;
+        bottom: 0;
+        right: 0;
+      }
+      .github-icon {
+        position: absolute;
+        bottom: 10px;
+        right: 20px;
+        font-size: 40px;
+        color: black; 
+      }
+      * {
+        user-select: none; 
+      }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  </head>
+  <body>
+    <div id="ui-container">
+      <div style="display: flex; flex-direction: column;">
+        <label>
+          <input type="checkbox" id="particle"> Particles
+        </label>
+      </div>
+      <div id="slider-container">
+        <label for="slider">Box Width:</label>
+        <input type="range" id="slider" min="0" max="100" value="100" />
+        <span id="slider-value"></span>
+      </div>
+    </div>
+    <div id="howto-container">
+      <div> <b>Drag</b> to move camera </div>
+      <div> <b>Scroll</b> to zoom in and out </div>
+      <div> <b>Press P</b> to pause the simulation </div>
+    </div>
+    <div id="debug-info">
+      <span id="error-reason">loading now...(won't take longer than 10 seconds I guess)</span>
+    </div>
+    <a href="https://github.com/matsuoka-601/Splash" 
+      class="github-icon" 
+      target="_blank" 
+      rel="noopener noreferrer">
+        <i class="fab fa-github"></i>
+    </a>
+    <canvas id="fluidCanvas"></canvas>
+    <script type="module" src="main.ts"></script>
+  </body>
+</html>
