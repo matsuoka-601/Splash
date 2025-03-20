@@ -5,7 +5,7 @@
 - Improved simulation performance due to the reduced number of substeps
 - More interaction🌊
 
-![splash-demo](https://github.com/user-attachments/assets/6ca54747-59a0-41ea-abc7-5d320302512e)
+![Splash_ An Interactive Fluid Simulation in Browsers](https://github.com/user-attachments/assets/6ca3b430-3337-46c3-b378-c582b1dea5e9)
 
 The simulation and rendering is implemented in WebGPU. The Simulation is based on an algorithm called **MLS-MPM (Moving Least Squared Material Point Method)** and the rendering is based on **Screen-Space Fluid Rendering**. For more detail, see [my article on Codrops](https://tympanus.net/codrops/2025/02/26/webgpu-fluid-simulations-high-performance-real-time-rendering/).
 ## Demo Video
