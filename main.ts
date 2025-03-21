@@ -179,7 +179,7 @@ async function main() {
 
 	let mlsmpmNumParticleParams = [40000, 70000, 100000, 180000]
 	let mlsmpmInitBoxSizes = [[60, 50, 60], [70, 50, 70], [80, 70, 80], [90, 60, 90]]
-	let mlsmpmInitDistances = [50, 60, 70, 75]
+	let mlsmpmInitDistances = [50, 60, 70, 80]
 	let mouseRadiuses = [15, 15, 15, 18]
 	let cameraTargetY = [10, 12, 12, 15]
 
