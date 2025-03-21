@@ -15,6 +15,6 @@ For rendering fluids, I have used a Bilateral Filter for depth smoothing in the 
 
 (TODO : write)
 
-To mitigate these problems, more sophisticated filters than Bilateral Filter have been proposed. The one I'm using for this project is [Narrow-Range Filter (i3D 2018)](https://ttnghia.github.io/pdf/NarrowRangeFilter.pdf) by Troung et al.
+To mitigate these problems, more sophisticated filters than Bilateral Filter have been proposed. The one I'm using for this project is [Narrow-Range Filter (i3D 2018)](https://ttnghia.github.io/pdf/NarrowRangeFilter.pdf) by Troung and Yuksel.
 ## Shadows Using Raymarching
 ## Single Simulation Substep
