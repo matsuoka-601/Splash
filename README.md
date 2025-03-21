@@ -1,6 +1,6 @@
 # Splash
 **Splash** is a real-time fluid simulation with the following features.
-- Smoother fluid surface thanks to **Narrow-Range Filter (i3D 2018)** by Truong et al.
+- Smoother fluid surface thanks to **Narrow-Range Filter (i3D 2018)** by Truong and Yuksel.
 - **Shadows using ray marching** through the density field (particle mode only)
 - Improved simulation performance due to the reduced number of substeps
 - More interaction 🌊 (see the demo video)
