@@ -1,6 +1,6 @@
 # Splash
 **Splash** is a real-time fluid simulation with the following features.
-- Smoother fluid surface thanks to **Narrow-Range Filter (i3D 2018)** by Truong and Yuksel.
+- Smoother fluid surface thanks to **Narrow-Range Filter (PACMCGIT 2018)** by Truong and Yuksel.
 - **Shadows using ray marching** through the density field (particle mode only)
 - Improved simulation performance due to the reduced number of substeps
 - More interaction 🌊 (see the demo video)
@@ -11,10 +11,8 @@ The simulation and rendering is implemented in WebGPU. The Simulation is based o
 ## Demo Video
 [![demo video](http://img.youtube.com/vi/9C7DRSdh88g/0.jpg)](https://www.youtube.com/watch?v=9C7DRSdh88g)
 ## Narrow-Range Filter for Depth Smoothing
-For rendering fluids, I have used a Bilateral Filter for depth smoothing in the past two projects ([WebGPU-Ocean](https://github.com/matsuoka-601/webgpu-ocean) and [WaterBall](https://github.com/matsuoka-601/waterball)). The fluid surface obtained with a Bilateral Filter has a decent quality, but it can produce some visible artifacts like below.
+For rendering fluids, I have used a Bilateral Filter for depth smoothing in past two projects ([WebGPU-Ocean](https://github.com/matsuoka-601/webgpu-ocean) and [WaterBall](https://github.com/matsuoka-601/waterball)). The fluid surface obtained with a Bilateral Filter has a decent quality, but it can produce some visible artifacts.
 
-(TODO : write)
-
-To mitigate these problems, more sophisticated filters than Bilateral Filter have been proposed. The one I'm using for this project is [Narrow-Range Filter (i3D 2018)](https://ttnghia.github.io/pdf/NarrowRangeFilter.pdf) by Troung and Yuksel.
+To mitigate these problems, more sophisticated filters than Bilateral Filter have been proposed. The one I'm using for this project is a [Narrow-Range Filter (PACMCGIT 2018)](https://ttnghia.github.io/pdf/NarrowRangeFilter.pdf) by Troung and Yuksel. This filter aims to render a smoother and cleaner fluid surface compared to other filters, while maintaining real-time performance.
 ## Shadows Using Raymarching
 ## Single Simulation Substep
