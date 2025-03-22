@@ -13,6 +13,6 @@ The simulation and rendering is implemented in WebGPU. The Simulation is based o
 ## Narrow-Range Filter for Depth Smoothing
 For rendering fluids, I have used a Bilateral Filter for depth smoothing in past two projects ([WebGPU-Ocean](https://github.com/matsuoka-601/webgpu-ocean) and [WaterBall](https://github.com/matsuoka-601/waterball)). The fluid surface obtained with a Bilateral Filter has a decent quality, but it can produce some visible artifacts.
 
-To mitigate these problems, more sophisticated filters than Bilateral Filter have been proposed. The one I'm using for this project is a [Narrow-Range Filter (PACMCGIT 2018)](https://ttnghia.github.io/pdf/NarrowRangeFilter.pdf) by Troung and Yuksel. This filter aims to render a smoother and cleaner fluid surface compared to other filters, while maintaining real-time performance.
+To mitigate these artifacts, more sophisticated filters than Bilateral Filter have been proposed. The one I'm using for this project is a [Narrow-Range Filter (PACMCGIT 2018)](https://ttnghia.github.io/pdf/NarrowRangeFilter.pdf) by Troung and Yuksel. This filter aims to render a smoother and cleaner fluid surface compared to other filters, while maintaining real-time performance.
 ## Shadows Using Raymarching
 ## Single Simulation Substep
