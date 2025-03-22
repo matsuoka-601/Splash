@@ -14,5 +14,14 @@ The simulation and rendering is implemented in WebGPU. The Simulation is based o
 For rendering fluids, I have used a Bilateral Filter for depth smoothing in past two projects ([WebGPU-Ocean](https://github.com/matsuoka-601/webgpu-ocean) and [WaterBall](https://github.com/matsuoka-601/waterball)). The fluid surface obtained with a Bilateral Filter has a decent quality, but it can produce some visible artifacts.
 
 To mitigate these artifacts, more sophisticated filters than Bilateral Filter have been proposed. The one I'm using for this project is a [Narrow-Range Filter (PACMCGIT 2018)](https://ttnghia.github.io/pdf/NarrowRangeFilter.pdf) by Troung and Yuksel. This filter aims to render a smoother and cleaner fluid surface compared to other filters, while maintaining real-time performance.
+
+Thanks to a Narrow-Range Filter, I could get a more beautiful reflections & refractions like below compared to past projects where I used a Bilateral Filter. The computational overhead was not that much (I haven't done timing seriously though) compared to Bilateral Filter, which made me decide to use it.
+
+![splash-demo-long - frame at 0m5s](https://github.com/user-attachments/assets/97a703c4-1f6d-4f9c-b977-f1974ca5c7d8)
 ## Shadows Using Raymarching
+When switching to Particle mode, you can see shadows are rendered on the surface of the fluid particles. 
+
+![スクリーンショット 2025-03-22 165158](https://github.com/user-attachments/assets/891a4229-30df-4dbf-891a-7ecea6e26017)
+
+For rendering these shadows, I'm using **ray marching** using the density grid obtained in the simulation. Additional P2G stage is performed in order to build a density grid. This adds extra performance overhead, but it's not that much since only single floating point number is scattered.
 ## Single Simulation Substep
