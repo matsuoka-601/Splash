@@ -11,7 +11,7 @@ The simulation and rendering is implemented in WebGPU. The Simulation is based o
 ## Demo Video
 [![demo video](http://img.youtube.com/vi/9C7DRSdh88g/0.jpg)](https://www.youtube.com/watch?v=9C7DRSdh88g)
 ## Narrow-Range Filter for Depth Smoothing
-For rendering fluids, I have used a Bilateral Filter for depth smoothing in past two projects ([WebGPU-Ocean](https://github.com/matsuoka-601/webgpu-ocean) and [WaterBall](https://github.com/matsuoka-601/waterball)). The fluid surface obtained with a Bilateral Filter has a decent quality, but it can produce some visible artifacts.
+For rendering fluids, I have used a Bilateral Filter for depth smoothing in past two projects ([WebGPU-Ocean](https://github.com/matsuoka-601/webgpu-ocean) and [WaterBall](https://github.com/matsuoka-601/waterball)). The fluid surface obtained with a Bilateral Filter has a decent quality, but it can have some visible artifacts.
 
 To mitigate these artifacts, more sophisticated filters than Bilateral Filter have been proposed. The one I'm using for this project is a [Narrow-Range Filter (PACMCGIT 2018)](https://ttnghia.github.io/pdf/NarrowRangeFilter.pdf) by Troung and Yuksel. This filter aims to render a smoother and cleaner fluid surface compared to other filters, while maintaining real-time performance.
 
@@ -23,5 +23,5 @@ When switching to Particle mode, you can see shadows are rendered on the surface
 
 ![スクリーンショット 2025-03-22 165158](https://github.com/user-attachments/assets/891a4229-30df-4dbf-891a-7ecea6e26017)
 
-For rendering these shadows, I'm using **ray marching** using the density grid obtained in the simulation. Additional P2G stage is performed in order to build a density grid. This adds extra performance overhead, but it's not that much since only single floating point number is scattered.
+For rendering these shadows, I'm using **ray marching** using the density grid obtained in the simulation. Additional P2G stage is performed in order to build a density grid. This P2G adds extra performance overhead, but it's not that much since only single floating point number is scattered.
 ## Single Simulation Substep
