@@ -107,7 +107,7 @@ async function main() {
 		'Small (40,000 particles)', 
 		'Medium (70,000 particles)', 
 		'Large (100,000 particles)', 
-		'Very Large (180,000 particles)'
+		'Very Large (1,600,000 particles)'
 	]
 
 	const params = {
@@ -147,7 +147,7 @@ async function main() {
 
 	// シミュレーションとレンダリングで使いまわすバッファ
 	const maxParticleStructSize = mlsmpmParticleStructSize
-	const maxGridCount = 140 * 140 * 140;
+	const maxGridCount = 120 * 120 * 120;
 	const particleBuffer = device.createBuffer({
 		label: 'particles buffer', 
 		size: maxParticleStructSize * numParticlesMax, 
@@ -177,9 +177,9 @@ async function main() {
 	console.log("buffer allocating done")
 
 
-	let mlsmpmNumParticleParams = [40000, 70000, 100000, 180000]
-	let mlsmpmInitBoxSizes = [[60, 50, 60], [70, 50, 70], [80, 70, 80], [90, 60, 90]]
-	let mlsmpmInitDistances = [50, 60, 70, 80]
+	let mlsmpmNumParticleParams = [40000, 70000, 100000, 1600000]
+	let mlsmpmInitBoxSizes = [[60, 50, 60], [70, 50, 70], [80, 70, 80], [120, 120, 120]]
+	let mlsmpmInitDistances = [50, 60, 70, 130]
 	let mouseRadiuses = [15, 15, 15, 18]
 	let cameraTargetY = [10, 12, 12, 15]
 
