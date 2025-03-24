@@ -1,3 +1,4 @@
+// shared between main.ts and camera.ts
 export const renderUniformsValues = new ArrayBuffer(272);
 export const renderUniformsViews = {
   texelSize: new Float32Array(renderUniformsValues, 0, 2),

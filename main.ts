@@ -265,7 +265,6 @@ async function main() {
 			}	
 		}
 
-
 		realBoxSize[2] = initBoxSize[2] * boxWidthRatio
 		mlsmpmSimulator.changeBoxSize(realBoxSize)
 
