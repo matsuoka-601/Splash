@@ -54,7 +54,13 @@ export class MLSMPMSimulator {
 
     spawned: boolean
 
-    mouseInfoValues: ArrayBuffer
+    mouseInfoValues = new ArrayBuffer(32)
+    mouseInfoViews = {
+        screenSize: new Float32Array(this.mouseInfoValues, 0, 2),
+        mouseCoord: new Float32Array(this.mouseInfoValues, 8, 2),
+        mouseVel: new Float32Array(this.mouseInfoValues, 16, 2),
+        mouseRadius: new Float32Array(this.mouseInfoValues, 24, 1),
+    };
 
     restDensity: number
 
@@ -167,7 +173,7 @@ export class MLSMPMSimulator {
         });
 
         const numParticlesValues = new ArrayBuffer(4);
-        this.mouseInfoValues = new ArrayBuffer(32);
+        
 
         const cellBuffer = device.createBuffer({ 
             label: 'cells buffer', 
@@ -206,13 +212,7 @@ export class MLSMPMSimulator {
         })
 
         // TODO : これを一か所にまとめる
-        const mouseInfoViews = {
-            screenSize: new Float32Array(this.mouseInfoValues, 0, 2),
-            mouseCoord: new Float32Array(this.mouseInfoValues, 8, 2),
-            mouseVel: new Float32Array(this.mouseInfoValues, 16, 2),
-            mouseRadius: new Float32Array(this.mouseInfoValues, 24, 1),
-        };
-        mouseInfoViews.screenSize.set([canvas.width, canvas.height]);
+        this.mouseInfoViews.screenSize.set([canvas.width, canvas.height]);
         this.device.queue.writeBuffer(this.mouseInfoUniformBuffer, 0, this.mouseInfoValues);
 
         // BindGroup
@@ -348,15 +348,9 @@ export class MLSMPMSimulator {
         densityGridFlag: boolean, dt: number, running: boolean) {
         const computePass = commandEncoder.beginComputePass();
 
-        const canvasInfoViews = {
-            screenSize: new Float32Array(this.mouseInfoValues, 0, 2),
-            mouseCoord: new Float32Array(this.mouseInfoValues, 8, 2),
-            mouseVel: new Float32Array(this.mouseInfoValues, 16, 2),
-            mouseRadius : new Float32Array(this.mouseInfoValues, 24, 2),
-        };
-        canvasInfoViews.mouseCoord.set([mouseCoord[0], mouseCoord[1]])
-        canvasInfoViews.mouseVel.set([mouseVel[0], mouseVel[1]])
-        canvasInfoViews.mouseRadius.set([mouseRadius])
+        this.mouseInfoViews.mouseCoord.set([mouseCoord[0], mouseCoord[1]])
+        this.mouseInfoViews.mouseVel.set([mouseVel[0], mouseVel[1]])
+        this.mouseInfoViews.mouseRadius.set([mouseRadius])
         this.device.queue.writeBuffer(this.mouseInfoUniformBuffer, 0, this.mouseInfoValues);
 
         const dtValues = new ArrayBuffer(4)
