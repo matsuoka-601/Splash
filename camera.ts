@@ -81,8 +81,8 @@ export class Camera {
 
         const aspect = this.canvas.clientWidth / this.canvas.clientHeight
         const projection = mat4.perspective(fov, aspect, 0.1, 300) 
-        renderUniformsViews.projection_matrix.set(projection)
-        renderUniformsViews.inv_projection_matrix.set(mat4.inverse(projection))
+        renderUniformsViews.projectionMatrix.set(projection)
+        renderUniformsViews.invProjectionMatrix.set(mat4.inverse(projection))
         this.recalculateView()
     }
 
@@ -94,9 +94,7 @@ export class Camera {
         mat4.translate(mat, [0, 0, this.currentDistance], mat)
         var position = mat4.multiply(mat, [0, 0, 0, 1])
 
-        // position[1] -= 18;
         let target = this.target;
-        // target[1] -= 18;
 
         const view = mat4.lookAt(
             [position[0], position[1], position[2]], // position
@@ -104,8 +102,8 @@ export class Camera {
             [0, 1, 0], // up
         )
 
-        renderUniformsViews.view_matrix.set(view)
-        renderUniformsViews.inv_view_matrix.set(mat4.inverse(view))
+        renderUniformsViews.viewMatrix.set(view)
+        renderUniformsViews.invViewMatrix.set(mat4.inverse(view))
     }
 
     calcMouseVelocity() {

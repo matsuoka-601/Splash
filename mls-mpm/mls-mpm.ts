@@ -328,7 +328,6 @@ export class MLSMPMSimulator {
     }
 
     reset(initBoxSize: number[], numParticles: number) {
-        renderUniformsViews.sphere_size.set([this.renderDiameter])
         this.gridCount = Math.ceil(initBoxSize[0]) * Math.ceil(initBoxSize[1]) * Math.ceil(initBoxSize[2])
         if (this.gridCount > this.maxGridCount) {
             throw new Error("gridCount should be equal to or less than maxGridCount")

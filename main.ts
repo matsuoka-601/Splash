@@ -138,7 +138,6 @@ async function main() {
 	});
 	console.log("cubemap initialization done")
 
-	renderUniformsViews.texel_size.set([1.0 / canvas.width, 1.0 / canvas.height]);
 
 	interface simulationParam {
 		particleCount: number, 
@@ -269,6 +268,10 @@ async function main() {
 
 		realBoxSize[2] = initBoxSize[2] * boxWidthRatio
 		mlsmpmSimulator.changeBoxSize(realBoxSize)
+
+		// matrices are written by camera.ts
+		renderUniformsViews.texelSize.set([1.0 / canvas.width, 1.0 / canvas.height]);
+		renderUniformsViews.sphereSize.set([mlsmpmDiameter])
 		device.queue.writeBuffer(renderUniformBuffer, 0, renderUniformsValues) 
 
 		const commandEncoder = device.createCommandEncoder()
