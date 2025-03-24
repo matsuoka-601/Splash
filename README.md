@@ -25,3 +25,11 @@ When switching to Particle mode, you can see shadows are rendered on the surface
 
 For rendering these shadows, I'm using **ray marching** using the density grid obtained in the simulation. Additional P2G stage is performed in order to build a density grid. This P2G adds extra performance overhead, but it's not that much since only single floating point number is scattered.
 ## Single Simulation Substep
+## How to run
+```
+npm install
+npm run serve
+```
+If you have trouble running the sim, feel free to open an issue.
+
+`million` branch is for you who want to heat your GPU up! In this branch, `very large` mode amounts to 1.6M particles, which is a very close to the memory limit of the buffer size.
