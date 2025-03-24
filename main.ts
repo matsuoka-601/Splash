@@ -1,6 +1,6 @@
 import { Camera } from './camera'
 import { mlsmpmParticleStructSize, MLSMPMSimulator } from './mls-mpm/mls-mpm'
-import { renderUniformsViews, renderUniformsValues, numParticlesMax } from './common'
+import { renderUniformsViews, renderUniformsValues } from './common'
 import { FluidRenderer } from './render/fluidRender'
 import GUI from 'lil-gui';
 
@@ -44,6 +44,44 @@ async function init() {
 	})
 
 	return { canvas, device, presentationFormat, context }
+}
+
+function initGui(particleCountTexts: string[]) {
+	const gui = new GUI();
+
+	const params = {
+		sigma: 1.3,
+		running: true,
+		r: 140, 
+		g:220, 
+		b:240,  
+		speed: 0.8, 
+		colorDensity: 3., 
+		numParticles: particleCountTexts[1], 
+		toggleSimulation: () => {
+			params.running = !params.running;
+		}
+	};	
+
+	const numParticlesFolder = gui.addFolder('Number of Particles');
+	numParticlesFolder.add(params, 'numParticles', particleCountTexts)
+  		.name('Number of Particles')
+	const speedFolder = gui.addFolder('Speed');
+	speedFolder.add(params, 'speed', 0.3, 1.0, 0.1).name('Simlation Speed')
+	const colorFolder = gui.addFolder('Diffuse Color');
+	colorFolder.add(params, 'r', 0, 255, 1).name('R')
+	colorFolder.add(params, 'g', 0, 255, 1).name('G')
+	colorFolder.add(params, 'b', 0, 255, 1).name('B')
+	colorFolder.add(params, 'colorDensity', 0.0, 6.0, 0.1).name('Density')
+	colorFolder.close();
+
+	document.addEventListener('keydown', (event) => {
+		if (event.code === 'KeyP') { 
+		  params.toggleSimulation(); 
+		}
+	});
+
+	return params
 }
 
 async function main() {
@@ -100,57 +138,33 @@ async function main() {
 	});
 	console.log("cubemap initialization done")
 
-
-	const gui = new GUI();
-
-	const numParticlesOptions = [
-		'Small (40,000 particles)', 
-		'Medium (70,000 particles)', 
-		'Large (100,000 particles)', 
-		'Very Large (180,000 particles)'
-	]
-
-	const params = {
-		sigma: 1.3,
-		running: true,
-		r: 140, 
-		g:220, 
-		b:240,  
-		speed: 0.8, 
-		colorDensity: 3., 
-		numParticles: numParticlesOptions[1], 
-		toggleSimulation: () => {
-			params.running = !params.running;
-		}
-	};	
-
-	const numParticlesFolder = gui.addFolder('Number of Particles');
-	numParticlesFolder.add(params, 'numParticles', numParticlesOptions)
-  		.name('Number of Particles')
-	const speedFolder = gui.addFolder('Speed');
-	speedFolder.add(params, 'speed', 0.3, 1.0, 0.1).name('Simlation Speed')
-	const colorFolder = gui.addFolder('Diffuse Color');
-	colorFolder.add(params, 'r', 0, 255, 1).name('R')
-	colorFolder.add(params, 'g', 0, 255, 1).name('G')
-	colorFolder.add(params, 'b', 0, 255, 1).name('B')
-	colorFolder.add(params, 'colorDensity', 0.0, 6.0, 0.1).name('Density')
-	colorFolder.close();
-
-	document.addEventListener('keydown', (event) => {
-		if (event.code === 'KeyP') { 
-		  params.toggleSimulation(); 
-		}
-	});
-
-
 	renderUniformsViews.texel_size.set([1.0 / canvas.width, 1.0 / canvas.height]);
+
+	interface simulationParam {
+		particleCount: number, 
+		initBoxSize: number[], 
+		initDistance: number, 
+		mouseRadius: number,
+		cameraTargetY: number, 
+		guiText: string, 
+	}
+
+	let simulationParams: simulationParam[] = [
+		{ particleCount: 40000, initBoxSize: [60, 50, 60], initDistance: 50, mouseRadius: 15, cameraTargetY: 10, guiText: 'Small (40,000 particles)' }, 
+		{ particleCount: 70000, initBoxSize: [70, 50, 70], initDistance: 60, mouseRadius: 15, cameraTargetY: 12, guiText: 'Medium (70,000 particles)'}, 
+		{ particleCount: 100000, initBoxSize: [80, 70, 80], initDistance: 70, mouseRadius: 15, cameraTargetY: 12, guiText: 'Large (100,000 particles)'}, 
+		{ particleCount: 180000, initBoxSize: [90, 70, 90], initDistance: 80, mouseRadius: 18, cameraTargetY: 15, guiText: 'Very Large (180,000 particles)'}, 
+	]
+	let particleCountTexts = simulationParams.map(param => param.guiText)
+	let guiParams = initGui(particleCountTexts)
+	let maxGridCount = Math.max(...simulationParams.map(param => param.initBoxSize[0] * param.initBoxSize[1] * param.initBoxSize[2]));
+	let maxParticleCount = Math.max(...simulationParams.map(param => param.particleCount));
 
 	// シミュレーションとレンダリングで使いまわすバッファ
 	const maxParticleStructSize = mlsmpmParticleStructSize
-	const maxGridCount = 140 * 140 * 140;
 	const particleBuffer = device.createBuffer({
 		label: 'particles buffer', 
-		size: maxParticleStructSize * numParticlesMax, 
+		size: maxParticleStructSize * maxParticleCount, 
 		usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
 	})
 	const densityGridBuffer = device.createBuffer({
@@ -160,7 +174,7 @@ async function main() {
 	})
 	const posvelBuffer = device.createBuffer({
 		label: 'posvel buffer', 
-		size: 32 * numParticlesMax,  
+		size: 32 * maxParticleCount,  
 		usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
 	})
 	const renderUniformBuffer = device.createBuffer({
@@ -176,13 +190,6 @@ async function main() {
 
 	console.log("buffer allocating done")
 
-
-	let mlsmpmNumParticleParams = [40000, 70000, 100000, 180000]
-	let mlsmpmInitBoxSizes = [[60, 50, 60], [70, 50, 70], [80, 70, 80], [90, 60, 90]]
-	let mlsmpmInitDistances = [50, 60, 70, 80]
-	let mouseRadiuses = [15, 15, 15, 18]
-	let cameraTargetY = [10, 12, 12, 15]
-
 	const canvasElement = document.getElementById("fluidCanvas") as HTMLCanvasElement;
 	// シミュレーション，カメラの初期化
 	const mlsmpmFov = 60 * Math.PI / 180
@@ -197,7 +204,11 @@ async function main() {
 		format: 'r32float',
 	});
 	const depthMapTextureView = depthMapTexture.createView()
-	const mlsmpmSimulator = new MLSMPMSimulator(particleBuffer, posvelBuffer, mlsmpmDiameter, device, renderUniformBuffer, depthMapTextureView, canvas, maxGridCount, densityGridBuffer, initBoxSizeBuffer, fixedPointMultiplier)
+	const mlsmpmSimulator = new MLSMPMSimulator(
+		particleBuffer, posvelBuffer, renderUniformBuffer, densityGridBuffer, initBoxSizeBuffer,
+		device, depthMapTextureView, canvas, 
+		maxGridCount, maxParticleCount, fixedPointMultiplier, mlsmpmDiameter
+	)
 	const mlsmpmRenderer = new FluidRenderer(device, canvas, presentationFormat, mlsmpmRadius, mlsmpmFov, posvelBuffer, renderUniformBuffer,  cubemapTextureView, depthMapTextureView, densityGridBuffer, fixedPointMultiplier, initBoxSizeBuffer)
 
 	console.log("simulator initialization done")
@@ -213,8 +224,9 @@ async function main() {
 	});
 
 	let paramsIdx = -1
-	let initBoxSize = [0, 0, 0]
 	let realBoxSize = [0, 0, 0]
+	let initBoxSize = [0, 0, 0]
+	let simulationParam = simulationParams[0]
 
 	let sphereRenderFl = false
 	let rotateFl = false
@@ -224,15 +236,13 @@ async function main() {
 	let closingSpeed = 0.
 	let prevClosingSpeed = 0.
 	async function frame() {
-		const start = performance.now();
-
-		const form = document.getElementById("number-button") as HTMLFormElement;
-		const selectedValue = numParticlesOptions.indexOf(params.numParticles);
-		if (params.running && Number(selectedValue) != paramsIdx) {
+		const selectedValue = particleCountTexts.indexOf(guiParams.numParticles);
+		if (guiParams.running && Number(selectedValue) != paramsIdx) {
 			paramsIdx = Number(selectedValue)
-			initBoxSize = mlsmpmInitBoxSizes[paramsIdx]
-			mlsmpmSimulator.reset(initBoxSize, mlsmpmNumParticleParams[paramsIdx])
-			camera.reset(mlsmpmInitDistances[paramsIdx], [initBoxSize[0] / 2, cameraTargetY[paramsIdx], initBoxSize[2] / 2], 
+			simulationParam = simulationParams[paramsIdx]
+			initBoxSize = simulationParam.initBoxSize
+			mlsmpmSimulator.reset(initBoxSize, simulationParam.particleCount)
+			camera.reset(simulationParam.initDistance, [initBoxSize[0] / 2, simulationParam.cameraTargetY, initBoxSize[2] / 2], 
 				mlsmpmFov, mlsmpmZoomRate)
 			realBoxSize = [...initBoxSize]
 			let slider = document.getElementById("slider") as HTMLInputElement
@@ -241,10 +251,10 @@ async function main() {
 
 		const particle = document.getElementById("particle") as HTMLInputElement
 		sphereRenderFl = particle.checked
-		if (params.running) {
+		if (guiParams.running) {
 			const slider = document.getElementById("slider") as HTMLInputElement
 			let curBoxWidthRatio = parseInt(slider.value) / 200 + 0.5
-			const maxClosingSpeed = 0.007 * params.speed
+			const maxClosingSpeed = 0.007 * guiParams.speed
 			closingSpeed = Math.min(maxClosingSpeed, prevClosingSpeed + maxClosingSpeed / 40.)
 			let dVal = Math.min(boxWidthRatio - curBoxWidthRatio, closingSpeed)
 			boxWidthRatio -= dVal
@@ -266,9 +276,9 @@ async function main() {
 		let maxDt = 0.4;
 		mlsmpmSimulator.execute(commandEncoder, 
 			[camera.currentHoverX / canvas.clientWidth, camera.currentHoverY / canvas.clientHeight], 
-			camera.calcMouseVelocity(), mouseRadiuses[paramsIdx], sphereRenderFl, maxDt * params.speed, params.running)	
-		let normalizedDiffuseColor = [params.r / 255, params.g / 255, params.b / 255];
-		mlsmpmRenderer.execute(context, commandEncoder, mlsmpmSimulator.numParticles, sphereRenderFl, normalizedDiffuseColor, params.colorDensity)
+			camera.calcMouseVelocity(), simulationParam.mouseRadius, sphereRenderFl, maxDt * guiParams.speed, guiParams.running)	
+		let normalizedDiffuseColor = [guiParams.r / 255, guiParams.g / 255, guiParams.b / 255];
+		mlsmpmRenderer.execute(context, commandEncoder, mlsmpmSimulator.numParticles, sphereRenderFl, normalizedDiffuseColor, guiParams.colorDensity)
 
 		device.queue.submit([commandEncoder.finish()])
 
@@ -276,8 +286,6 @@ async function main() {
 		if (rotateFl) {
 			camera.stepAngle();
 		}
-
-		const end = performance.now();
 
 		requestAnimationFrame(frame)
 	} 

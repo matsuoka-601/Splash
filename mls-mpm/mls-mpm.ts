@@ -7,7 +7,7 @@ import copyPosition from './copyPosition.wgsl'
 import p2gDensity from './p2gDensity.wgsl'
 import clearDensityGrid from './clearDensityGrid.wgsl'
 
-import { numParticlesMax, renderUniformsViews } from '../common'
+import { renderUniformsViews } from '../common'
 
 export const mlsmpmParticleStructSize = 80
 
@@ -22,6 +22,7 @@ export class MLSMPMSimulator {
     numParticles = 0
     gridCount = 0
     maxGridCount = 0
+    maxParticleCount = 0
     densityGridCount = 0
 
     clearGridPipeline: GPUComputePipeline
@@ -57,9 +58,11 @@ export class MLSMPMSimulator {
 
     restDensity: number
 
-    constructor (particleBuffer: GPUBuffer, posvelBuffer: GPUBuffer, renderDiameter: number, device: GPUDevice, 
-        renderUniformBuffer: GPUBuffer, depthMapTextureView: GPUTextureView, canvas: HTMLCanvasElement, 
-        maxGridCount: number, densityGridBuffer: GPUBuffer, initBoxSizeBuffer: GPUBuffer, fixedPointMultiplier: number) 
+    constructor (
+                particleBuffer: GPUBuffer, posvelBuffer: GPUBuffer, renderUniformBuffer: GPUBuffer, densityGridBuffer: GPUBuffer, initBoxSizeBuffer: GPUBuffer,
+                device: GPUDevice, depthMapTextureView: GPUTextureView, canvas: HTMLCanvasElement, 
+                maxGridCount: number, maxParticleCount: number, fixedPointMultiplier: number, renderDiameter: number, 
+        ) 
     {
         this.device = device
         this.renderDiameter = renderDiameter
@@ -67,6 +70,7 @@ export class MLSMPMSimulator {
         this.spawned = false
         this.numParticles = 0
         this.maxGridCount = maxGridCount
+        this.maxParticleCount = maxParticleCount
         this.initBoxSizeBuffer = initBoxSizeBuffer
 
         const clearGridModule = device.createShaderModule({ code: clearGrid })
@@ -172,7 +176,7 @@ export class MLSMPMSimulator {
         })
         this.densityBuffer = device.createBuffer({
             label: 'density buffer', 
-            size: 4 * numParticlesMax, 
+            size: 4 * maxParticleCount, 
             usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
         })
         this.realBoxSizeBuffer = device.createBuffer({
@@ -290,7 +294,7 @@ export class MLSMPMSimulator {
     }
 
     initDambreak(initBoxSize: number[], numParticles: number) {
-        let particlesBuf = new ArrayBuffer(mlsmpmParticleStructSize * numParticlesMax);
+        let particlesBuf = new ArrayBuffer(mlsmpmParticleStructSize * this.maxParticleCount);
         const spacing = 0.9 ;
 
         this.numParticles = 0;
@@ -386,7 +390,6 @@ export class MLSMPMSimulator {
                 computePass.dispatchWorkgroups(Math.ceil(this.numParticles / 64))  
             }
         } else { // density grid を更新する場合
-            console.log("density grid path")
             if (running) {
                 for (let i = 0; i < 1; i++) {  // single timestep!!!
                     computePass.setBindGroup(0, this.clearGridBindGroup);
