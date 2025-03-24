@@ -318,6 +318,9 @@ export class MLSMPMSimulator {
         }
         
         console.log(this.numParticles)
+        if (this.numParticles < numParticles) {
+            console.log("warning: actual number of particles is smaller than the specified number. make bounding box larger.")
+        }
         
         let particles = new ArrayBuffer(mlsmpmParticleStructSize * this.numParticles);
         const oldView = new Uint8Array(particlesBuf);
