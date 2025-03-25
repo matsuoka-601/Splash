@@ -1,5 +1,5 @@
 # Splash
-**Splash** is a real-time fluid simulation with the following features.
+**Splash** is a real-time fluid simulation with the following features. [Try Demo Here!](https://splash-fluid.netlify.app)
 - Smoother fluid surface thanks to **Narrow-Range Filter (PACMCGIT 2018)** by Truong and Yuksel.
 - **Shadows using ray marching** through the density field (particle mode only)
 - Improved simulation performance due to the reduced number of substeps
