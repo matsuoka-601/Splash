@@ -141,7 +141,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
 
 
     let speed = textureSampleLevel(bgTexture, textureSampler, input.uv, 0.0).r;
-    let albedo: vec3f = vec3f(0, 120, 240) / 256.;
+    let albedo: vec3f = vec3f(40, 120, 240) / 256.;
 
     let LdotN: f32 = 0.5 * dot(normalWorld, lightDirWorld) + 0.5;
     let shadow = exp(-1. * densitySum);
@@ -149,7 +149,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     let H: vec3f        = normalize(lightDirWorld - rayDirWorld);
     let specular: f32   = pow(max(0.0, dot(H, normalWorld)), 50.);
     let diffuse: f32 = max(dot(normalWorld, lightDirWorld), 0.);
-    var finalColor = shadow * LdotN * albedo * 1. + 0.1 * diffuse * shadow + 0.3 * specular * shadow;
+    var finalColor = shadow * LdotN * albedo * 1. + 0.1 * diffuse * shadow + 0.25 * specular * shadow;
 
-    return vec4f(vec3f(pow(finalColor, vec3f(1.))), 1.); 
+    return vec4f(pow(finalColor, vec3f(1.0 / 0.7)), 1.); 
 }
