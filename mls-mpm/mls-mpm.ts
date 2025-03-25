@@ -7,8 +7,6 @@ import copyPosition from './copyPosition.wgsl'
 import p2gDensity from './p2gDensity.wgsl'
 import clearDensityGrid from './clearDensityGrid.wgsl'
 
-import { renderUniformsViews } from '../common'
-
 export const mlsmpmParticleStructSize = 80
 
 export class MLSMPMSimulator {
