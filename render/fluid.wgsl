@@ -37,7 +37,7 @@ fn getViewPosFromTexCoord(texCoord: vec2f, iuv: vec2f) -> vec3f {
 }
 
 fn gamma(v: vec3f) -> vec3f {
-    return pow(v, vec3(1.0 / 0.95));
+    return pow(v, vec3(1.0 / 2.2));
 }
 
 fn calcReflactedTexCoord(surfacePosView: vec3f, refractionDirView: vec3f, thickness: f32) -> vec2f {
@@ -73,14 +73,14 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
 
     if (depth >= 1e4) {
         let bgColor: vec3f = textureSampleLevel(bgTexture, textureSampler, input.uv, 0.0).rgb;
-        return vec4f(gamma(bgColor), 0.);
+        return vec4f(bgColor, 0.);
     }
 
     let surfacePosView = computeViewPosFromUVDepth(input.uv, depth);
     let surfacePosWorld = (uniforms.invViewMatrix * vec4f(surfacePosView, 1.0)).xyz;
     if (surfacePosWorld.y < 2.0) {
         let bgColor: vec3f = textureSampleLevel(bgTexture, textureSampler, input.uv, 0.0).rgb;
-        return vec4f(gamma(bgColor), 0.);
+        return vec4f(bgColor, 0.);
     }
     var ddx: vec3f = getViewPosFromTexCoord(input.uv + vec2f(uniforms.texelSize.x, 0.), input.iuv + vec2f(1.0, 0.0)) - surfacePosView; 
     var ddy: vec3f = getViewPosFromTexCoord(input.uv + vec2f(0., uniforms.texelSize.y), input.iuv + vec2f(0.0, 1.0)) - surfacePosView; 
@@ -98,13 +98,13 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     var specular: f32   = pow(max(0.0, dot(H, normal)), 300.);
     var diffuse: f32  = max(0.0, dot(lightDirView, normal)) * 1.0;
 
-    var transmittance: vec3f = exp(-density * thickness * (1.0 - diffuseColor)); 
+    var transmittance: vec3f = exp(-density * 10 * thickness * (1.0 - diffuseColor)); 
     var refractionDirView: vec3f = normalize(refract(rayDirView, normal, 1.0 / 1.333));
     var refractionDirWorld: vec3f = normalize((uniforms.invViewMatrix * vec4f(refractionDirView, 0.)).xyz);
-    var transmitted = textureSampleLevel(envmapTexture, textureSampler, refractionDirWorld, 0.0).rgb;
+    var transmitted = pow(textureSampleLevel(envmapTexture, textureSampler, refractionDirWorld, 0.0).rgb, vec3f(2.2));
     if (refractionDirWorld.y < 0.) {
         let surfacePosWorld = (uniforms.invViewMatrix * vec4f(surfacePosView, 1.)).xyz;
-        let floor = floorColor(surfacePosWorld, refractionDirWorld);
+        let floor = pow(floorColor(surfacePosWorld, refractionDirWorld), vec4f(2.2));
         transmitted = select(transmitted, floor.rgb, floor.w > 0.5);
     }
     var refractionColor: vec3f = transmitted * transmittance;
@@ -115,11 +115,11 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
 
     var reflectionDir: vec3f = reflect(rayDirView, normal);
     var reflectionDirWorld: vec3f = (uniforms.invViewMatrix * vec4f(reflectionDir, 0.0)).xyz;
-    var reflectionColor: vec3f = select(textureSampleLevel(envmapTexture, textureSampler, reflectionDirWorld, 0.).rgb, vec3f(0.85), reflectionDirWorld.y < 0.); 
-    fresnel = select(fresnel, 0.3 * fresnel, reflectionDirWorld.y < 0.);
-    fresnelBiased = select(fresnelBiased, 0.3 * fresnelBiased, reflectionDirWorld.y < 0.);
+    var reflectionColor: vec3f = pow(select(textureSampleLevel(envmapTexture, textureSampler, reflectionDirWorld, 0.).rgb, vec3f(0.75), reflectionDirWorld.y < 0.), vec3f(2.2)); 
+    fresnel = select(fresnel, 0.0 * fresnel, reflectionDirWorld.y < 0.);
+    fresnelBiased = select(fresnelBiased, 0.0 * fresnelBiased, reflectionDirWorld.y < 0.);
 
-    var finalColor = 0.0 * specular + mix(refractionColor, reflectionColor, fresnelBiased) + 0.1 * fresnel;
+    var finalColor = 0.0 * specular + mix(refractionColor, reflectionColor, fresnel) + 0.0 * fresnel;
 
     return vec4f(gamma(finalColor), 1.0);
 }
