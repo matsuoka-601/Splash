@@ -110,16 +110,16 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     var refractionColor: vec3f = transmitted * transmittance;
 
     let F0 = 0.02;
-    var fresnelBiased: f32 = clamp(F0 + (1.0 - F0) * pow(1.0 - dot(normal, -rayDirView), 5.0) + 0.05, 0., 1.);
+    var fresnelBiased: f32 = clamp(F0 + (1.0 - F0) * pow(1.0 - dot(normal, -rayDirView), 5.0) + 0.0, 0., 1.);
     var fresnel: f32 = clamp(F0 + (1.0 - F0) * pow(1.0 - dot(normal, -rayDirView), 5.0), 0., 1.);
 
     var reflectionDir: vec3f = reflect(rayDirView, normal);
     var reflectionDirWorld: vec3f = (uniforms.invViewMatrix * vec4f(reflectionDir, 0.0)).xyz;
     var reflectionColor: vec3f = pow(select(textureSampleLevel(envmapTexture, textureSampler, reflectionDirWorld, 0.).rgb, vec3f(0.75), reflectionDirWorld.y < 0.), vec3f(2.2)); 
-    fresnel = select(fresnel, 0.0 * fresnel, reflectionDirWorld.y < 0.);
-    fresnelBiased = select(fresnelBiased, 0.0 * fresnelBiased, reflectionDirWorld.y < 0.);
+    fresnel = select(fresnel, 0.2 * fresnel, reflectionDirWorld.y < 0.);
+    fresnelBiased = select(fresnelBiased, 0.2 * fresnelBiased, reflectionDirWorld.y < 0.);
 
-    var finalColor = 0.0 * specular + mix(refractionColor, reflectionColor, fresnel) + 0.0 * fresnel;
+    var finalColor = 0.0     * specular + mix(refractionColor, reflectionColor, fresnel) + 0.0 * fresnel;
 
-    return vec4f(gamma(finalColor), 1.0);
+    return vec4f(gamma(finalColor) + 0.1 * fresnel, 1.0);
 }
