@@ -42,7 +42,7 @@ fn getViewPosFromTexCoord(texCoord: vec2f, iuv: vec2f) -> vec3f {
 }
 
 fn gamma(v: vec3f) -> vec3f {
-    return pow(v, vec3(1.0 / 0.95));
+    return pow(v, vec3(1.0 / 0.9));
 }
 
 fn value_to_color(value: f32) -> vec3<f32> {
@@ -149,7 +149,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     let H: vec3f        = normalize(lightDirWorld - rayDirWorld);
     let specular: f32   = pow(max(0.0, dot(H, normalWorld)), 50.);
     let diffuse: f32 = max(dot(normalWorld, lightDirWorld), 0.);
-    var finalColor = shadow * LdotN * albedo * 1. + 0.1 * diffuse * shadow + 0.25 * specular * shadow;
+    var finalColor = shadow * LdotN * albedo * 1. + 0.1 * diffuse * shadow + 0.2 * specular * shadow;
 
-    return vec4f(pow(finalColor, vec3f(1.0 / 0.7)), 1.); 
+    return vec4f(pow(finalColor, vec3f(1.0 / 0.8)), 1.); 
 }
