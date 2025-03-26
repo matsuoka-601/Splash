@@ -56,7 +56,7 @@ function initGui(particleCountTexts: string[]) {
 		g:220, 
 		b:240,  
 		speed: 0.8, 
-		colorDensity: 3., 
+		colorDensity: 1.2, 
 		numParticles: particleCountTexts[1], 
 		toggleSimulation: () => {
 			params.running = !params.running;
