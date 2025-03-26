@@ -42,7 +42,7 @@ fn getViewPosFromTexCoord(texCoord: vec2f, iuv: vec2f) -> vec3f {
 }
 
 fn gamma(v: vec3f) -> vec3f {
-    return pow(v, vec3(1.0 / 0.9));
+    return pow(v, vec3(1.0 / 0.95));
 }
 
 fn value_to_color(value: f32) -> vec3<f32> {
