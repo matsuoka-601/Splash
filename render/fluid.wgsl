@@ -119,7 +119,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     fresnel = select(fresnel, 0.2 * fresnel, reflectionDirWorld.y < 0.);
     fresnelBiased = select(fresnelBiased, 0.2 * fresnelBiased, reflectionDirWorld.y < 0.);
 
-    var finalColor = 0.0     * specular + mix(refractionColor, reflectionColor, fresnel) + 0.1 * fresnel;
+    var finalColor = 0.0     * specular + mix(refractionColor, reflectionColor, fresnel) + 0. * fresnel;
 
     return vec4f(gamma(finalColor) + 0.0 * fresnel, 1.0);
 }
