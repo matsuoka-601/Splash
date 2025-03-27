@@ -39,6 +39,9 @@ fn getViewPosFromTexCoord(texCoord: vec2f, iuv: vec2f) -> vec3f {
 fn gamma(v: vec3f) -> vec3f {
     return pow(v, vec3(1.0 / 2.2));
 }
+fn invGamma(v: vec3f) -> vec3f {
+    return pow(v, vec3(2.2));
+}
 
 fn calcReflactedTexCoord(surfacePosView: vec3f, refractionDirView: vec3f, thickness: f32) -> vec2f {
     let refractionStrength = 3.;
@@ -104,8 +107,8 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     var transmitted = pow(textureSampleLevel(envmapTexture, textureSampler, refractionDirWorld, 0.0).rgb, vec3f(2.2));
     if (refractionDirWorld.y < 0.) {
         let surfacePosWorld = (uniforms.invViewMatrix * vec4f(surfacePosView, 1.)).xyz;
-        let floor = pow(floorColor(surfacePosWorld, refractionDirWorld), vec4f(2.2));
-        transmitted = select(transmitted, floor.rgb, floor.w > 0.5);
+        let floor = floorColor(surfacePosWorld, refractionDirWorld);
+        transmitted = select(transmitted, invGamma(floor.rgb), floor.w > 0.5);
     }
     var refractionColor: vec3f = transmitted * transmittance;
 
@@ -115,11 +118,12 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
 
     var reflectionDir: vec3f = reflect(rayDirView, normal);
     var reflectionDirWorld: vec3f = (uniforms.invViewMatrix * vec4f(reflectionDir, 0.0)).xyz;
-    var reflectionColor: vec3f = pow(select(textureSampleLevel(envmapTexture, textureSampler, reflectionDirWorld, 0.).rgb, vec3f(0.75), reflectionDirWorld.y < 0.), vec3f(2.2)); 
+    var reflectionColor: vec3f = invGamma(select(textureSampleLevel(envmapTexture, textureSampler, reflectionDirWorld, 0.).rgb, vec3f(0.75), reflectionDirWorld.y < 0.)); 
     fresnel = select(fresnel, 0.2 * fresnel, reflectionDirWorld.y < 0.);
     fresnelBiased = select(fresnelBiased, 0.2 * fresnelBiased, reflectionDirWorld.y < 0.);
 
     var finalColor = 0.0     * specular + mix(refractionColor, reflectionColor, fresnel) + 0. * fresnel;
 
-    return vec4f(gamma(finalColor) + 0.0 * fresnel, 1.0);
+    return vec4f(gamma(finalColor), 1.0);
+    // return vec4f(thickness, 0, 0, 1.0);
 }

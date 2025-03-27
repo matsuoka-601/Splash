@@ -18,7 +18,6 @@ struct RenderUniforms {
 @group(0) @binding(3) var<uniform> initBoxSize: vec3f;
 @group(0) @binding(4) var textureSampler: sampler;
 @group(0) @binding(5) var bgTexture: texture_2d<f32>;
-// @group(0) @binding(6) var<uniform> albedo: vec3f;
 
 override fixedPointMultiplier: f32; 
 
@@ -42,7 +41,7 @@ fn getViewPosFromTexCoord(texCoord: vec2f, iuv: vec2f) -> vec3f {
 }
 
 fn gamma(v: vec3f) -> vec3f {
-    return pow(v, vec3(1.0 / 0.9));
+    return pow(v, vec3(1.0 / 2.2));
 }
 
 fn value_to_color(value: f32) -> vec3<f32> {
@@ -78,7 +77,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     let depth: f32 = abs(textureLoad(depthTexture, vec2u(input.iuv), 0).r);
     if (depth >= 1e4) {
         let bgColor: vec3f = textureSampleLevel(bgTexture, textureSampler, input.uv, 0.0).rgb;
-        return vec4f(gamma(bgColor), 0.);
+        return vec4f(bgColor, 0.);
     }
 
     let surfacePosView = computeViewPosFromUVDepth(input.uv, depth);
@@ -141,7 +140,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
 
 
     let speed = textureSampleLevel(bgTexture, textureSampler, input.uv, 0.0).r;
-    let albedo: vec3f = vec3f(40, 120, 240) / 256.;
+    let albedo: vec3f = vec3f(0, 70, 250) / 256.;
 
     let LdotN: f32 = 0.5 * dot(normalWorld, lightDirWorld) + 0.5;
     let shadow = exp(-1. * densitySum);
@@ -151,5 +150,5 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     let diffuse: f32 = max(dot(normalWorld, lightDirWorld), 0.);
     var finalColor = shadow * LdotN * albedo * 1. + 0.1 * diffuse * shadow + 0.2 * specular * shadow;
 
-    return vec4f(pow(finalColor, vec3f(1.0 / 0.8)), 1.); 
+    return vec4f(gamma(finalColor), 1.); 
 }
