@@ -43,7 +43,7 @@ export class FluidRenderer {
     device: GPUDevice
 
     constructor(
-        renderUniformBuffer: GPUBuffer, posvelBuffer: GPUBuffer, densityGridBuffer: GPUBuffer, densityGridSizeBuffer: GPUBuffer, 
+        renderUniformBuffer: GPUBuffer, posvelBuffer: GPUBuffer, densityGridBuffer: GPUBuffer, densityGridSizeBuffer: GPUBuffer, initBoxSizeBuffer: GPUBuffer, 
         device: GPUDevice, 
         depthMapTextureView: GPUTextureView, cubemapTextureView: GPUTextureView, 
         canvas: HTMLCanvasElement, 
@@ -478,7 +478,7 @@ export class FluidRenderer {
                 { binding: 0, resource: this.depthMapTextureView },
                 { binding: 1, resource: { buffer: densityGridBuffer }},
                 { binding: 2, resource: { buffer: renderUniformBuffer }}, 
-                { binding: 3, resource: { buffer: densityGridSizeBuffer }}, 
+                { binding: 3, resource: { buffer: initBoxSizeBuffer }}, 
                 { binding: 4, resource: sampler }, 
                 { binding: 5, resource: this.tmpOutputTextureView }, 
                 { binding: 6, resource: { buffer: densityGridSizeBuffer }}

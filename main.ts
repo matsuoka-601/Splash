@@ -227,7 +227,7 @@ async function main() {
 		maxGridCount, maxParticleCount, fixedPointMultiplier, mlsmpmDiameter
 	)
 	const mlsmpmRenderer = new FluidRenderer(
-		renderUniformBuffer, posvelBuffer, densityGridBuffer, densityGridSizeBuffer, 
+		renderUniformBuffer, posvelBuffer, densityGridBuffer, densityGridSizeBuffer, initBoxSizeBuffer, 
 		device, 
 		depthMapTextureView, cubemapTextureView,
 		canvas, 

@@ -73,6 +73,8 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     let densityScale: f32 = 0.2; 
     let lightDirWorld: vec3f = normalize(vec3f(0., 1, 0.));
 
+    let dummy = initBoxSize;
+
     surfacePosWorld += 1.0 * lightDirWorld; 
     for (var i = 0; i < 300; i++) { 
         let posWorld = surfacePosWorld + t * lightDirWorld;
