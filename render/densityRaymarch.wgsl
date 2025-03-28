@@ -148,7 +148,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     let H: vec3f        = normalize(lightDirWorld - rayDirWorld);
     let specular: f32   = pow(max(0.0, dot(H, normalWorld)), 50.);
     let diffuse: f32 = max(dot(normalWorld, lightDirWorld), 0.);
-    var finalColor = shadow * LdotN * albedo * 1. + 0.1 * diffuse * shadow + 0.2 * specular * shadow;
+    var finalColor = shadow * LdotN * albedo * 1. + 0.1 * diffuse * shadow + 0.3 * specular * shadow;
 
     return vec4f(gamma(finalColor), 1.); 
 }
