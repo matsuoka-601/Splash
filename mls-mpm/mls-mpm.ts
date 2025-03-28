@@ -63,7 +63,8 @@ export class MLSMPMSimulator {
     restDensity: number
 
     constructor (
-                particleBuffer: GPUBuffer, posvelBuffer: GPUBuffer, renderUniformBuffer: GPUBuffer, densityGridBuffer: GPUBuffer, initBoxSizeBuffer: GPUBuffer,
+                particleBuffer: GPUBuffer, posvelBuffer: GPUBuffer, renderUniformBuffer: GPUBuffer, densityGridBuffer: GPUBuffer, 
+                initBoxSizeBuffer: GPUBuffer, densityGridSizeBuffer: GPUBuffer, 
                 device: GPUDevice, depthMapTextureView: GPUTextureView, canvas: HTMLCanvasElement, 
                 maxGridCount: number, maxParticleCount: number, fixedPointMultiplier: number, renderDiameter: number, 
         ) 
@@ -170,9 +171,6 @@ export class MLSMPMSimulator {
             }
         });
 
-        const numParticlesValues = new ArrayBuffer(4);
-        
-
         const cellBuffer = device.createBuffer({ 
             label: 'cells buffer', 
             size: this.cellStructSize * maxGridCount,  
@@ -190,7 +188,7 @@ export class MLSMPMSimulator {
         })
         this.numParticlesBuffer = device.createBuffer({
             label: 'number of particles buffer', 
-            size: numParticlesValues.byteLength, 
+            size: 4, // 1 x f32
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         }) 
         this.mouseInfoUniformBuffer = device.createBuffer({
@@ -200,16 +198,15 @@ export class MLSMPMSimulator {
         })
         this.sphereRadiusBuffer = device.createBuffer({
             label: 'sphere radius buffer', 
-            size: 4, // single f32
+            size: 4, // 1 x f32
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
         this.dtBuffer = device.createBuffer({
             label: 'dt buffer', 
-            size: 4, // single f32
+            size: 4, // 1 x f32
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
 
-        // TODO : これを一か所にまとめる
         this.mouseInfoViews.screenSize.set([canvas.width, canvas.height]);
         this.device.queue.writeBuffer(this.mouseInfoUniformBuffer, 0, this.mouseInfoValues);
 
@@ -253,7 +250,7 @@ export class MLSMPMSimulator {
                 { binding: 1, resource: { buffer: this.densityBuffer }}, 
                 { binding: 2, resource: { buffer: this.numParticlesBuffer }}, 
                 { binding: 3, resource: { buffer: densityGridBuffer }}, 
-                { binding: 4, resource: { buffer: initBoxSizeBuffer }}
+                { binding: 4, resource: { buffer: densityGridSizeBuffer }}
             ]
         })
         this.updateGridBindGroup = device.createBindGroup({

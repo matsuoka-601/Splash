@@ -2,7 +2,7 @@
 @group(0) @binding(1) var<storage, read> densities: array<f32>;
 @group(0) @binding(2) var<uniform> numParticles: u32;
 @group(0) @binding(3) var<storage, read_write> densityGrid: array<atomic<i32>>;
-@group(0) @binding(4) var<uniform> initBoxSize: vec3f;
+@group(0) @binding(4) var<uniform> densityGridSize: vec3f;
 
 struct Particle {
     position: vec3f, 
@@ -37,8 +37,8 @@ fn p2gDensity(@builtin(global_invocation_id) id: vec3<u32>) {
                             cellIndex.z + f32(gz) - 1.  
                         );
                     let cellIndex1D: i32 = 
-                        i32(cellX.x) * i32(initBoxSize.y) * i32(initBoxSize.z) + 
-                        i32(cellX.y) * i32(initBoxSize.z) + 
+                        i32(cellX.x) * i32(densityGridSize.y) * i32(densityGridSize.z) + 
+                        i32(cellX.y) * i32(densityGridSize.z) + 
                         i32(cellX.z);
                     atomicAdd(&densityGrid[cellIndex1D], encodeFixedPoint(densities[id.x] * weight));
                 }

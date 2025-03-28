@@ -154,21 +154,16 @@ async function main() {
 		{ particleCount: 100000, initBoxSize: [80, 70, 80], initDistance: 70, mouseRadius: 15, cameraTargetY: 12, guiText: 'Large (100,000 particles)'}, 
 		{ particleCount: 180000, initBoxSize: [90, 70, 90], initDistance: 80, mouseRadius: 18, cameraTargetY: 15, guiText: 'Very Large (180,000 particles)'}, 
 	]
-	let particleCountTexts = simulationParams.map(param => param.guiText)
-	let guiParams = initGui(particleCountTexts)
-	let maxGridCount = Math.max(...simulationParams.map(param => param.initBoxSize[0] * param.initBoxSize[1] * param.initBoxSize[2]));
-	let maxParticleCount = Math.max(...simulationParams.map(param => param.particleCount));
+	const particleCountTexts = simulationParams.map(param => param.guiText)
+	const guiParams = initGui(particleCountTexts)
+	const maxParticleCount = Math.max(...simulationParams.map(param => param.particleCount));
+	const maxGridCount = Math.max(...simulationParams.map(param => param.initBoxSize[0] * param.initBoxSize[1] * param.initBoxSize[2]));
 
 	// シミュレーションとレンダリングで使いまわすバッファ
 	const maxParticleStructSize = mlsmpmParticleStructSize
 	const particleBuffer = device.createBuffer({
 		label: 'particles buffer', 
 		size: maxParticleStructSize * maxParticleCount, 
-		usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-	})
-	const densityGridBuffer = device.createBuffer({
-		label: 'density grid buffer', 
-		size: 4 * maxGridCount, 
 		usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
 	})
 	const posvelBuffer = device.createBuffer({
@@ -187,6 +182,29 @@ async function main() {
 		usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 	})
 
+	// const densityGridSizeX = Math.ceil(Math.max(...simulationParams.map(param => param.initBoxSize[0])) / 64) * 64; // コピーのために切り上げ
+	const densityGridSizeX = Math.max(...simulationParams.map(param => param.initBoxSize[0])); // コピーのために切り上げ
+	const densityGridSizeY = Math.max(...simulationParams.map(param => param.initBoxSize[1]));
+	const densityGridSizeZ = Math.max(...simulationParams.map(param => param.initBoxSize[2]));
+	const densityGridSize = [densityGridSizeX, densityGridSizeY, densityGridSizeZ]
+	const densityGridBuffer = device.createBuffer({
+		label: 'density grid buffer', 
+		size: 4 * densityGridSizeX * densityGridSizeY * densityGridSizeZ, 
+		usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC, // コピー元
+	})
+	const densityGridSizeBuffer = device.createBuffer({
+		label: 'density grid size buffer', 
+		size: 12, 
+		usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, 
+	})
+	const densityGridSizeData = new Float32Array(densityGridSize)
+	device.queue.writeBuffer(densityGridSizeBuffer, 0, densityGridSizeData)
+	const densityGridTexture = device.createTexture({ 
+		label: 'density grid texture', 
+		size: densityGridSize,
+		usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST, // コピー先
+		format: 'r32float',
+	});
 	console.log("buffer allocating done")
 
 	const canvasElement = document.getElementById("fluidCanvas") as HTMLCanvasElement;
@@ -204,11 +222,18 @@ async function main() {
 	});
 	const depthMapTextureView = depthMapTexture.createView()
 	const mlsmpmSimulator = new MLSMPMSimulator(
-		particleBuffer, posvelBuffer, renderUniformBuffer, densityGridBuffer, initBoxSizeBuffer,
+		particleBuffer, posvelBuffer, renderUniformBuffer, densityGridBuffer, initBoxSizeBuffer, densityGridSizeBuffer, 
 		device, depthMapTextureView, canvas, 
 		maxGridCount, maxParticleCount, fixedPointMultiplier, mlsmpmDiameter
 	)
-	const mlsmpmRenderer = new FluidRenderer(device, canvas, presentationFormat, mlsmpmRadius, mlsmpmFov, posvelBuffer, renderUniformBuffer,  cubemapTextureView, depthMapTextureView, densityGridBuffer, fixedPointMultiplier, initBoxSizeBuffer)
+	const mlsmpmRenderer = new FluidRenderer(
+		renderUniformBuffer, posvelBuffer, densityGridBuffer, densityGridSizeBuffer, 
+		device, 
+		depthMapTextureView, cubemapTextureView,
+		canvas, 
+		presentationFormat, 
+		mlsmpmRadius, mlsmpmFov, fixedPointMultiplier
+	)
 
 	console.log("simulator initialization done")
 

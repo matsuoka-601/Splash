@@ -43,10 +43,12 @@ export class FluidRenderer {
     device: GPUDevice
 
     constructor(
-        device: GPUDevice, canvas: HTMLCanvasElement, presentationFormat: GPUTextureFormat,
-        radius: number, fov: number, posvelBuffer: GPUBuffer, 
-        renderUniformBuffer: GPUBuffer, cubemapTextureView: GPUTextureView, depthMapTextureView: GPUTextureView, 
-        densityGridBuffer: GPUBuffer, fixedPointMultiplier: number, initBoxSizeBuffer: GPUBuffer
+        renderUniformBuffer: GPUBuffer, posvelBuffer: GPUBuffer, densityGridBuffer: GPUBuffer, densityGridSizeBuffer: GPUBuffer, 
+        device: GPUDevice, 
+        depthMapTextureView: GPUTextureView, cubemapTextureView: GPUTextureView, 
+        canvas: HTMLCanvasElement, 
+        presentationFormat: GPUTextureFormat,
+        radius: number, fov: number, fixedPointMultiplier: number, 
     ) {
         this.device = device
         const maxFilterSize = 50
@@ -476,10 +478,10 @@ export class FluidRenderer {
                 { binding: 0, resource: this.depthMapTextureView },
                 { binding: 1, resource: { buffer: densityGridBuffer }},
                 { binding: 2, resource: { buffer: renderUniformBuffer }}, 
-                { binding: 3, resource: { buffer: initBoxSizeBuffer }}, 
+                { binding: 3, resource: { buffer: densityGridSizeBuffer }}, 
                 { binding: 4, resource: sampler }, 
                 { binding: 5, resource: this.tmpOutputTextureView }, 
-                // { binding: 6, resource: { buffer: this.diffuseColorBuffer }}
+                { binding: 6, resource: { buffer: densityGridSizeBuffer }}
             ]
         })
     }
