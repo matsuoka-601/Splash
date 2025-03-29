@@ -69,15 +69,15 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
 
     var densitySum: f32 = 0.;
     var t: f32 = 0.;
-    let stepSize: f32 = 0.8; 
+    let stepSize: f32 = 0.3; 
     let densityScale: f32 = 0.2; 
     let lightDirWorld: vec3f = normalize(vec3f(0., 1, 0.));
 
     var dummy = initBoxSize;
     var dummy2 = fixedPointMultiplier;
 
-    surfacePosWorld += 1.0 * lightDirWorld; 
-    for (var i = 0; i < 300; i++) { 
+    surfacePosWorld += 1.5 * lightDirWorld; 
+    for (var i = 0; i < 1000; i++) { 
         let posWorld = surfacePosWorld + t * lightDirWorld;
         if (any(posWorld <= vec3f(0.)) || any(posWorld >= initBoxSize - 1)) { 
             break;
