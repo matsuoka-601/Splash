@@ -39,6 +39,8 @@ export class FluidRenderer {
 
     diffuseColorBuffer: GPUBuffer
     colorDensityBuffer: GPUBuffer
+    densityGridBuffer: GPUBuffer
+    densityGridSizeBuffer: GPUBuffer
 
     device: GPUDevice
 
@@ -350,6 +352,8 @@ export class FluidRenderer {
             size: 4, 
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
+        this.densityGridBuffer = densityGridBuffer
+        this.densityGridSizeBuffer = densityGridSizeBuffer
         device.queue.writeBuffer(filterXUniformBuffer, 0, filterXUniformsValues);
         device.queue.writeBuffer(filterYUniformBuffer, 0, filterYUniformsValues);
         device.queue.writeBuffer(thicknessFilterSizeBuffer, 0, thicknessFilterSizeValues);
@@ -476,19 +480,21 @@ export class FluidRenderer {
             layout: this.densityRaymarchPipeline.getBindGroupLayout(0),  
             entries: [
                 { binding: 0, resource: this.depthMapTextureView },
-                { binding: 1, resource: { buffer: densityGridBuffer }},
+                { binding: 1, resource: { buffer: this.densityGridBuffer }},
                 { binding: 2, resource: { buffer: renderUniformBuffer }}, 
                 { binding: 3, resource: { buffer: initBoxSizeBuffer }}, 
                 { binding: 4, resource: sampler }, 
                 { binding: 5, resource: this.tmpOutputTextureView }, 
-                { binding: 6, resource: { buffer: densityGridSizeBuffer }}
+                { binding: 6, resource: { buffer: this.densityGridSizeBuffer }}
             ]
         })
     }
 
 
     execute(context: GPUCanvasContext, commandEncoder: GPUCommandEncoder, 
-        numParticles: number, sphereRenderFl: boolean, diffuseColor: number[], colorDensity: number) 
+        numParticles: number, sphereRenderFl: boolean, diffuseColor: number[], colorDensity: number, densityGridTexture: GPUTexture, 
+        densityGridSize: number[]
+    ) 
     {
         const diffuseColorValues = new ArrayBuffer(12)
         const diffuseColorViews = new Float32Array(diffuseColorValues)
@@ -698,6 +704,24 @@ export class FluidRenderer {
             spherePassEncoder.setPipeline(this.spherePipeline);
             spherePassEncoder.draw(6, numParticles);
             spherePassEncoder.end();
+
+            // グリッドをテクスチャへコピー
+            commandEncoder.copyBufferToTexture(
+                {
+                    buffer: this.densityGridBuffer,
+                    bytesPerRow: densityGridSize[0] * 4,
+                    rowsPerImage: densityGridSize[1]
+                },
+                {
+                    texture: densityGridTexture
+                },
+                {
+                    width: densityGridSize[0],
+                    height: densityGridSize[1],
+                    depthOrArrayLayers: densityGridSize[2]
+                }
+            );
+
             const densityRaymarchPassEncoder = commandEncoder.beginRenderPass(densityRaymarchPassDescriptor);
             densityRaymarchPassEncoder.setBindGroup(0, this.densityRaymarchBindGroup);
             densityRaymarchPassEncoder.setPipeline(this.densityRaymarchPipeline);

@@ -182,8 +182,18 @@ async function main() {
 		usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 	})
 
-	// const densityGridSizeX = Math.ceil(Math.max(...simulationParams.map(param => param.initBoxSize[0])) / 64) * 64; // コピーのために切り上げ
-	const densityGridSizeX = Math.max(...simulationParams.map(param => param.initBoxSize[0])); // コピーのために切り上げ
+	// texture for depthmap
+	const depthMapTexture = device.createTexture({
+		label: 'depth map texture', 
+		size: [canvas.width, canvas.height, 1],
+		usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+		format: 'r32float',
+	});
+	const depthMapTextureView = depthMapTexture.createView()
+
+	// texture for density grid
+	const densityGridSizeX = Math.ceil(Math.max(...simulationParams.map(param => param.initBoxSize[0])) / 64) * 64; // コピーのために切り上げ
+	// const densityGridSizeX = Math.max(...simulationParams.map(param => param.initBoxSize[0])); // コピーのために切り上げ
 	const densityGridSizeY = Math.max(...simulationParams.map(param => param.initBoxSize[1]));
 	const densityGridSizeZ = Math.max(...simulationParams.map(param => param.initBoxSize[2]));
 	const densityGridSize = [densityGridSizeX, densityGridSizeY, densityGridSizeZ]
@@ -204,7 +214,7 @@ async function main() {
 		size: densityGridSize,
 		usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST, // コピー先
 		format: 'r32float',
-	});
+	})
 	console.log("buffer allocating done")
 
 	const canvasElement = document.getElementById("fluidCanvas") as HTMLCanvasElement;
@@ -214,13 +224,6 @@ async function main() {
 	const mlsmpmDiameter = 2 * mlsmpmRadius
 	const mlsmpmZoomRate = 0.7
 	const fixedPointMultiplier = 1e7
-	const depthMapTexture = device.createTexture({
-		label: 'depth map texture', 
-		size: [canvas.width, canvas.height, 1],
-		usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-		format: 'r32float',
-	});
-	const depthMapTextureView = depthMapTexture.createView()
 	const mlsmpmSimulator = new MLSMPMSimulator(
 		particleBuffer, posvelBuffer, renderUniformBuffer, densityGridBuffer, initBoxSizeBuffer, densityGridSizeBuffer, 
 		device, depthMapTextureView, canvas, 
@@ -305,7 +308,8 @@ async function main() {
 			[camera.currentHoverX / canvas.clientWidth, camera.currentHoverY / canvas.clientHeight], 
 			camera.calcMouseVelocity(), simulationParam.mouseRadius, sphereRenderFl, maxDt * guiParams.speed, guiParams.running)	
 		let normalizedDiffuseColor = [guiParams.r / 255, guiParams.g / 255, guiParams.b / 255];
-		mlsmpmRenderer.execute(context, commandEncoder, mlsmpmSimulator.numParticles, sphereRenderFl, normalizedDiffuseColor, guiParams.colorDensity)
+		mlsmpmRenderer.execute(context, commandEncoder, mlsmpmSimulator.numParticles, sphereRenderFl, normalizedDiffuseColor, 
+			guiParams.colorDensity, densityGridTexture, densityGridSize)
 
 		device.queue.submit([commandEncoder.finish()])
 

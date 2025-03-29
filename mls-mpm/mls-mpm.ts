@@ -405,6 +405,7 @@ export class MLSMPMSimulator {
             computePass.setPipeline(this.clearDensityGridPipeline)
             // computePass.dispatchWorkgroups(Math.ceil(this.densityGridCount / 64))
             computePass.dispatchWorkgroups(Math.ceil(this.maxGridCount / 64)) // TODO : 高速化
+            
             // density grid の p2g
             computePass.setBindGroup(0, this.p2gDensityBindGroup)
             computePass.setPipeline(this.p2gDensityPipeline)
