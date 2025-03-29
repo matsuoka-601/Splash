@@ -214,7 +214,7 @@ async function main() {
 	device.queue.writeBuffer(densityGridSizeBuffer, 0, densityGridSizeData)
 	const densityGridTexture = device.createTexture({ 
 		label: 'density grid texture', 
-		size: densityGridSize,
+		size: [densityGridSizeX, densityGridSizeZ, densityGridSizeY], // これでいい？
 		usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST, // コピー先
 		format: 'r32float',
 		dimension: '3d'
@@ -267,6 +267,8 @@ async function main() {
 	console.log("simulation start")
 	let closingSpeed = 0.
 	let prevClosingSpeed = 0.
+
+	
 	async function frame() {
 		const selectedValue = particleCountTexts.indexOf(guiParams.numParticles);
 		if (guiParams.running && Number(selectedValue) != paramsIdx) {
@@ -311,12 +313,35 @@ async function main() {
 		let maxDt = 0.4;
 		mlsmpmSimulator.execute(commandEncoder, 
 			[camera.currentHoverX / canvas.clientWidth, camera.currentHoverY / canvas.clientHeight], 
-			camera.calcMouseVelocity(), simulationParam.mouseRadius, sphereRenderFl, maxDt * guiParams.speed, guiParams.running)	
+			camera.calcMouseVelocity(), simulationParam.mouseRadius, sphereRenderFl, maxDt * guiParams.speed, guiParams.running,
+			densityGridSize
+		)	
 		let normalizedDiffuseColor = [guiParams.r / 255, guiParams.g / 255, guiParams.b / 255];
 		mlsmpmRenderer.execute(context, commandEncoder, mlsmpmSimulator.numParticles, sphereRenderFl, normalizedDiffuseColor, 
-			guiParams.colorDensity, densityGridTexture, densityGridSize)
+			guiParams.colorDensity)
 
 		device.queue.submit([commandEncoder.finish()])
+
+
+		const copyCommandEncoder = device.createCommandEncoder()
+		// グリッドをテクスチャへコピー
+		copyCommandEncoder.copyBufferToTexture(
+			{
+				buffer: densityGridBuffer,
+				bytesPerRow: densityGridSize[0] * 4,
+				rowsPerImage: densityGridSize[2]
+			},
+			{
+				texture: densityGridTexture
+			},
+			{
+				width: densityGridSize[0],
+				height: densityGridSize[2],
+				depthOrArrayLayers: densityGridSize[1]
+			}
+		);
+		device.queue.submit([copyCommandEncoder.finish()])
+
 
 		camera.setNewPrevMouseCoord();
 		if (rotateFl) {

@@ -39,7 +39,6 @@ export class FluidRenderer {
 
     diffuseColorBuffer: GPUBuffer
     colorDensityBuffer: GPUBuffer
-    densityGridBuffer: GPUBuffer
     densityGridSizeBuffer: GPUBuffer
 
     device: GPUDevice
@@ -352,7 +351,6 @@ export class FluidRenderer {
             size: 4, 
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
-        this.densityGridBuffer = densityGridBuffer
         this.densityGridSizeBuffer = densityGridSizeBuffer
         device.queue.writeBuffer(filterXUniformBuffer, 0, filterXUniformsValues);
         device.queue.writeBuffer(filterYUniformBuffer, 0, filterYUniformsValues);
@@ -494,8 +492,7 @@ export class FluidRenderer {
 
 
     execute(context: GPUCanvasContext, commandEncoder: GPUCommandEncoder, 
-        numParticles: number, sphereRenderFl: boolean, diffuseColor: number[], colorDensity: number, densityGridTexture: GPUTexture, 
-        densityGridSize: number[]
+        numParticles: number, sphereRenderFl: boolean, diffuseColor: number[], colorDensity: number
     ) 
     {
         const diffuseColorValues = new ArrayBuffer(12)
@@ -706,23 +703,6 @@ export class FluidRenderer {
             spherePassEncoder.setPipeline(this.spherePipeline)
             spherePassEncoder.draw(6, numParticles)
             spherePassEncoder.end()
-
-            // グリッドをテクスチャへコピー
-            commandEncoder.copyBufferToTexture(
-                {
-                    buffer: this.densityGridBuffer,
-                    bytesPerRow: densityGridSize[0] * 4,
-                    rowsPerImage: densityGridSize[1]
-                },
-                {
-                    texture: densityGridTexture
-                },
-                {
-                    width: densityGridSize[0],
-                    height: densityGridSize[1],
-                    depthOrArrayLayers: densityGridSize[2]
-                }
-            );
 
             const densityRaymarchPassEncoder = commandEncoder.beginRenderPass(densityRaymarchPassDescriptor)
             densityRaymarchPassEncoder.setBindGroup(0, this.densityRaymarchBindGroup)

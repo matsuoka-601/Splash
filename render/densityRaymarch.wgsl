@@ -110,7 +110,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
         // let c1: f32 = mix(c01, c11, posf.y);
         // let ret: f32 = mix(c0, c1, posf.z);
         let worldCoord: vec3f = posWorld / densityGridSize;
-        let density: f32 = textureSampleLevel(densityGridTexture, textureSampler, worldCoord, 0.).r;
+        let density: f32 = textureSampleLevel(densityGridTexture, textureSampler, worldCoord.xzy, 0.).r;
         densitySum += stepSize * density * densityScale;
 
         t += stepSize;

@@ -46,6 +46,7 @@ export class MLSMPMSimulator {
 
     particleBuffer: GPUBuffer
     dtBuffer: GPUBuffer
+    densityGridBuffer: GPUBuffer
 
     device: GPUDevice
 
@@ -306,6 +307,7 @@ export class MLSMPMSimulator {
         })
 
         this.particleBuffer = particleBuffer
+        this.densityGridBuffer = densityGridBuffer
     }
 
     initDambreak(initBoxSize: number[], numParticles: number) {
@@ -363,7 +365,8 @@ export class MLSMPMSimulator {
     }
 
     execute(commandEncoder: GPUCommandEncoder, mouseCoord: number[], mouseVel: number[], mouseRadius: number, 
-        densityGridFlag: boolean, dt: number, running: boolean) {
+        densityGridFlag: boolean, dt: number, running: boolean, densityGridSize: number[]
+    ) { 
         const computePass = commandEncoder.beginComputePass();
 
         this.mouseInfoViews.mouseCoord.set([mouseCoord[0], mouseCoord[1]])
@@ -420,11 +423,12 @@ export class MLSMPMSimulator {
                     computePass.dispatchWorkgroups(Math.ceil(this.numParticles / 64)) 
                 }
             }
+            let maxDensityGridCount = densityGridSize[0] * densityGridSize[1] * densityGridSize[2];
             // density grid をクリア
             computePass.setBindGroup(0, this.clearDensityGridBindGroup)
             computePass.setPipeline(this.clearDensityGridPipeline)
-            // computePass.dispatchWorkgroups(Math.ceil(this.densityGridCount / 64))
-            computePass.dispatchWorkgroups(Math.ceil(this.maxGridCount / 64)) // TODO : 高速化            
+            computePass.dispatchWorkgroups(Math.ceil(maxDensityGridCount / 64))
+            // computePass.dispatchWorkgroups(Math.ceil(this.maxGridCount / 64)) // TODO : 高速化            
             
             // density grid の p2g
             computePass.setBindGroup(0, this.p2gDensityBindGroup)
@@ -434,8 +438,8 @@ export class MLSMPMSimulator {
             // density grid を f32 にキャスト
             computePass.setBindGroup(0, this.castDensityGridBindGroup)
             computePass.setPipeline(this.castDensityGridPipeline)
-            // computePass.dispatchWorkgroups(Math.ceil(this.densityGridCount / 64))
-            computePass.dispatchWorkgroups(Math.ceil(this.maxGridCount / 64)) // TODO : 高速化
+            computePass.dispatchWorkgroups(Math.ceil(maxDensityGridCount / 64))
+            // computePass.dispatchWorkgroups(Math.ceil(this.maxGridCount / 64)) // TODO : 高速化
 
             computePass.setBindGroup(0, this.copyPositionBindGroup)
             computePass.setPipeline(this.copyPositionPipeline)

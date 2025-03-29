@@ -10,5 +10,9 @@ fn decodeFixedPoint(fixedPoint: i32) -> f32 {
 fn clearDensityGrid(@builtin(global_invocation_id) id: vec3<u32>) {
     if (id.x < arrayLength(&densityGrid)) {
         densityGrid[id.x] = bitcast<i32>(decodeFixedPoint(densityGrid[id.x]));
+        // if (densityGrid[id.x] > 0) {
+        //     densityGrid[id.x] = bitcast<i32>(1.);
+        //     let dummy = fixedPointMultiplier;
+        // }
     }
 }
