@@ -215,6 +215,7 @@ async function main() {
 		usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST, // コピー先
 		format: 'r32float',
 	})
+	const densityGridTextureView = densityGridTexture.createView()
 	console.log("buffer allocating done")
 
 	const canvasElement = document.getElementById("fluidCanvas") as HTMLCanvasElement;
@@ -232,7 +233,7 @@ async function main() {
 	const mlsmpmRenderer = new FluidRenderer(
 		renderUniformBuffer, posvelBuffer, densityGridBuffer, densityGridSizeBuffer, initBoxSizeBuffer, 
 		device, 
-		depthMapTextureView, cubemapTextureView,
+		depthMapTextureView, cubemapTextureView, densityGridTextureView, 
 		canvas, 
 		presentationFormat, 
 		mlsmpmRadius, mlsmpmFov, fixedPointMultiplier

@@ -6,6 +6,7 @@ import g2p from './g2p.wgsl'
 import copyPosition from './copyPosition.wgsl'
 import p2gDensity from './p2gDensity.wgsl'
 import clearDensityGrid from './clearDensityGrid.wgsl'
+import castDensityGrid from './castDensityGrid.wgsl'
 
 export const mlsmpmParticleStructSize = 80
 
@@ -25,6 +26,7 @@ export class MLSMPMSimulator {
 
     clearGridPipeline: GPUComputePipeline
     clearDensityGridPipeline: GPUComputePipeline
+    castDensityGridPipeline: GPUComputePipeline
     p2g1Pipeline: GPUComputePipeline
     p2g2Pipeline: GPUComputePipeline
     p2gDensityPipeline: GPUComputePipeline
@@ -34,6 +36,7 @@ export class MLSMPMSimulator {
 
     clearGridBindGroup: GPUBindGroup
     clearDensityGridBindGroup: GPUBindGroup
+    castDensityGridBindGroup: GPUBindGroup
     p2g1BindGroup: GPUBindGroup
     p2g2BindGroup: GPUBindGroup
     p2gDensityBindGroup: GPUBindGroup
@@ -80,6 +83,7 @@ export class MLSMPMSimulator {
 
         const clearGridModule = device.createShaderModule({ code: clearGrid })
         const clearDensityGridModule = device.createShaderModule({ code: clearDensityGrid })
+        const castDensityGridModule = device.createShaderModule({ code: castDensityGrid })
         const p2g1Module = device.createShaderModule({ code: p2g_1 })
         const p2g2Module = device.createShaderModule({ code: p2g_2 })
         const p2gDensityModule = device.createShaderModule({ code: p2gDensity })
@@ -108,6 +112,16 @@ export class MLSMPMSimulator {
             layout: 'auto', 
             compute: {
                 module: clearDensityGridModule, 
+            }
+        })
+        this.castDensityGridPipeline = device.createComputePipeline({
+            label: "cast density grid pipeline", 
+            layout: 'auto', 
+            compute: {
+                module: castDensityGridModule, 
+                constants: {
+                    'fixedPointMultiplier': constants.fixedPointMultiplier
+                }, 
             }
         })
         this.p2g1Pipeline = device.createComputePipeline({
@@ -219,6 +233,12 @@ export class MLSMPMSimulator {
         })
         this.clearDensityGridBindGroup = device.createBindGroup({
             layout: this.clearDensityGridPipeline.getBindGroupLayout(0), 
+            entries: [
+              { binding: 0, resource: { buffer: densityGridBuffer }}, 
+            ],  
+        })
+        this.castDensityGridBindGroup = device.createBindGroup({
+            layout: this.castDensityGridPipeline.getBindGroupLayout(0), 
             entries: [
               { binding: 0, resource: { buffer: densityGridBuffer }}, 
             ],  
@@ -404,12 +424,18 @@ export class MLSMPMSimulator {
             computePass.setBindGroup(0, this.clearDensityGridBindGroup)
             computePass.setPipeline(this.clearDensityGridPipeline)
             // computePass.dispatchWorkgroups(Math.ceil(this.densityGridCount / 64))
-            computePass.dispatchWorkgroups(Math.ceil(this.maxGridCount / 64)) // TODO : 高速化
+            computePass.dispatchWorkgroups(Math.ceil(this.maxGridCount / 64)) // TODO : 高速化            
             
             // density grid の p2g
             computePass.setBindGroup(0, this.p2gDensityBindGroup)
             computePass.setPipeline(this.p2gDensityPipeline)
             computePass.dispatchWorkgroups(Math.ceil(this.numParticles / 64))
+
+            // density grid を f32 にキャスト
+            computePass.setBindGroup(0, this.castDensityGridBindGroup)
+            computePass.setPipeline(this.castDensityGridPipeline)
+            // computePass.dispatchWorkgroups(Math.ceil(this.densityGridCount / 64))
+            computePass.dispatchWorkgroups(Math.ceil(this.maxGridCount / 64)) // TODO : 高速化
 
             computePass.setBindGroup(0, this.copyPositionBindGroup)
             computePass.setPipeline(this.copyPositionPipeline)

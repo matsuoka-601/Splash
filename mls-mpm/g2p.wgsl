@@ -23,7 +23,6 @@ fn decodeFixedPoint(fixedPoint: i32) -> f32 {
 	return f32(fixedPoint) / fixedPointMultiplier;
 }
 
-
 @compute @workgroup_size(64)
 fn g2p(@builtin(global_invocation_id) id: vec3<u32>) {
     if (id.x < numParticles) {

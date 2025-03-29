@@ -13,7 +13,7 @@ struct RenderUniforms {
 }
 
 @group(0) @binding(0) var depthTexture: texture_2d<f32>;
-@group(0) @binding(1) var<storage, read_write> densityGrid: array<i32>;
+@group(0) @binding(1) var<storage, read_write> densityGrid: array<f32>;
 @group(0) @binding(2) var<uniform> uniforms: RenderUniforms;
 @group(0) @binding(3) var<uniform> initBoxSize: vec3f;
 @group(0) @binding(4) var textureSampler: sampler;
@@ -73,7 +73,8 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     let densityScale: f32 = 0.2; 
     let lightDirWorld: vec3f = normalize(vec3f(0., 1, 0.));
 
-    let dummy = initBoxSize;
+    var dummy = initBoxSize;
+    var dummy2 = fixedPointMultiplier;
 
     surfacePosWorld += 1.0 * lightDirWorld; 
     for (var i = 0; i < 300; i++) { 
@@ -108,7 +109,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
         let c0: f32 = mix(c00, c10, posf.y);
         let c1: f32 = mix(c01, c11, posf.y);
         let ret: f32 = mix(c0, c1, posf.z);
-        densitySum += stepSize * decodeFixedPoint(i32(ret)) * densityScale;
+        densitySum += stepSize * ret * densityScale;
 
         t += stepSize;
     }
