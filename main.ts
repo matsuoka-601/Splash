@@ -195,10 +195,10 @@ async function main() {
 	const depthMapTextureView = depthMapTexture.createView()
 
 	// texture for density grid
-	const densityGridSizeX = Math.ceil(Math.max(...simulationParams.map(param => param.initBoxSize[0])) / 64) * 64; // コピーのために切り上げ
-	// const densityGridSizeX = Math.max(...simulationParams.map(param => param.initBoxSize[0])); // コピーのために切り上げ
+	// const densityGridSizeX = Math.ceil(Math.max(...simulationParams.map(param => param.initBoxSize[0])) / 64) * 64; // コピーのために切り上げ
+	const densityGridSizeX = Math.max(...simulationParams.map(param => param.initBoxSize[0])); // コピーのために切り上げ
 	const densityGridSizeY = Math.max(...simulationParams.map(param => param.initBoxSize[1]));
-	const densityGridSizeZ = Math.max(...simulationParams.map(param => param.initBoxSize[2]));
+	const densityGridSizeZ = Math.ceil(Math.max(...simulationParams.map(param => param.initBoxSize[2])) / 64) * 64;
 	const densityGridSize = [densityGridSizeX, densityGridSizeY, densityGridSizeZ]
 	const densityGridBuffer = device.createBuffer({
 		label: 'density grid buffer', 
@@ -214,7 +214,7 @@ async function main() {
 	device.queue.writeBuffer(densityGridSizeBuffer, 0, densityGridSizeData)
 	const densityGridTexture = device.createTexture({ 
 		label: 'density grid texture', 
-		size: [densityGridSizeX, densityGridSizeZ, densityGridSizeY], // これでいい？
+		size: [densityGridSizeZ, densityGridSizeY, densityGridSizeX], // これでいい？
 		usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST, // コピー先
 		format: 'r32float',
 		dimension: '3d'
@@ -328,16 +328,16 @@ async function main() {
 		copyCommandEncoder.copyBufferToTexture(
 			{
 				buffer: densityGridBuffer,
-				bytesPerRow: densityGridSize[0] * 4,
-				rowsPerImage: densityGridSize[2]
+				bytesPerRow: densityGridSize[2] * 4,
+				rowsPerImage: densityGridSize[1]
 			},
 			{
 				texture: densityGridTexture
 			},
 			{
-				width: densityGridSize[0],
-				height: densityGridSize[2],
-				depthOrArrayLayers: densityGridSize[1]
+				width: densityGridSize[2],
+				height: densityGridSize[1],
+				depthOrArrayLayers: densityGridSize[0]
 			}
 		);
 		device.queue.submit([copyCommandEncoder.finish()])
