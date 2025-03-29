@@ -69,9 +69,9 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
 
     var densitySum: f32 = 0.;
     var t: f32 = 0.;
-    let stepSize: f32 = 0.3; 
+    let stepSize: f32 = 0.6; 
     let densityScale: f32 = 0.2; 
-    let lightDirWorld: vec3f = normalize(vec3f(0., 1, 0.));
+    let lightDirWorld: vec3f = normalize(vec3f(0, 1, 0));
 
     var dummy = initBoxSize;
     var dummy2 = fixedPointMultiplier;
