@@ -27,6 +27,11 @@ async function init() {
 		requiredFeatures: ["float32-filterable"],
 	});
 
+	if (!device) {
+		alert("float-32-filterable is not supported")
+		throw new Error()
+	}
+
 	const context = canvas.getContext('webgpu') as GPUCanvasContext
 
 	if (!context) {
