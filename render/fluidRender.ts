@@ -480,15 +480,16 @@ export class FluidRenderer {
             layout: this.densityRaymarchPipeline.getBindGroupLayout(0),  
             entries: [
                 { binding: 0, resource: this.depthMapTextureView },
-                { binding: 1, resource: { buffer: this.densityGridBuffer }},
+                { binding: 1, resource: densityGridTextureView },
                 { binding: 2, resource: { buffer: renderUniformBuffer }}, 
                 { binding: 3, resource: { buffer: initBoxSizeBuffer }}, 
                 { binding: 4, resource: sampler }, 
                 { binding: 5, resource: this.tmpOutputTextureView }, 
                 { binding: 6, resource: { buffer: this.densityGridSizeBuffer }}, 
-                // { binding: 7, resource: densityGridTextureView }
             ]
         })
+
+        console.log(this.densityRaymarchPipeline.getBindGroupLayout(0))
     }
 
 

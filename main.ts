@@ -22,7 +22,10 @@ async function init() {
 		throw new Error()
 	}
 
-	const device = await adapter.requestDevice()
+	// const device = await adapter.requestDevice()
+	const device = await adapter.requestDevice({
+		requiredFeatures: ["float32-filterable"],
+	});
 
 	const context = canvas.getContext('webgpu') as GPUCanvasContext
 
@@ -214,6 +217,7 @@ async function main() {
 		size: densityGridSize,
 		usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST, // コピー先
 		format: 'r32float',
+		dimension: '3d'
 	})
 	const densityGridTextureView = densityGridTexture.createView()
 	console.log("buffer allocating done")
