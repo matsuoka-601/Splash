@@ -355,10 +355,8 @@ export class MLSMPMSimulator {
             throw new Error("gridCount should be equal to or less than maxGridCount")
         }
         this.densityGridCount = this.gridCount 
-        const initBoxSizeValues = new ArrayBuffer(12)
-        const initBoxSizeViews = new Float32Array(initBoxSizeValues)
-        initBoxSizeViews.set(initBoxSize);    
-        this.device.queue.writeBuffer(this.initBoxSizeBuffer, 0, initBoxSizeValues)
+        const initBoxSizeArray = new Float32Array(initBoxSize)
+        this.device.queue.writeBuffer(this.initBoxSizeBuffer, 0, initBoxSizeArray)
         this.frameCount = 0;
         let particles = this.initDambreak(initBoxSize, numParticles)
         this.device.queue.writeBuffer(this.particleBuffer, 0, particles)
@@ -376,10 +374,8 @@ export class MLSMPMSimulator {
         this.mouseInfoViews.mouseRadius.set([mouseRadius])
         this.device.queue.writeBuffer(this.mouseInfoUniformBuffer, 0, this.mouseInfoValues);
 
-        const dtValues = new ArrayBuffer(4)
-        const dtViews = new Float32Array(dtValues)
-        dtViews.set([dt])
-        this.device.queue.writeBuffer(this.dtBuffer, 0, dtViews)
+        const dtArray = new Float32Array([dt])
+        this.device.queue.writeBuffer(this.dtBuffer, 0, dtArray)
 
 
         if (!densityGridFlag) { // 通常
@@ -454,17 +450,13 @@ export class MLSMPMSimulator {
     }
 
     changeBoxSize(realBoxSize: number[]) {
-        const realBoxSizeValues = new ArrayBuffer(12);
-        const realBoxSizeViews = new Float32Array(realBoxSizeValues);
-        realBoxSizeViews.set(realBoxSize)
-        this.device.queue.writeBuffer(this.realBoxSizeBuffer, 0, realBoxSizeViews)
+        const realBoxSizeArray = new Float32Array(realBoxSize);
+        this.device.queue.writeBuffer(this.realBoxSizeBuffer, 0, realBoxSizeArray)
     }
 
     changeNumParticles(numParticles: number) {
-        const numParticlesValues = new ArrayBuffer(4);
-        const numParticlesViews = new Int32Array(numParticlesValues)
-        numParticlesViews.set([numParticles])
-        this.device.queue.writeBuffer(this.numParticlesBuffer, 0, numParticlesViews)
+        const numParticlesArray = new Int32Array([numParticles])
+        this.device.queue.writeBuffer(this.numParticlesBuffer, 0, numParticlesArray)
         this.numParticles = numParticles
     }
 }

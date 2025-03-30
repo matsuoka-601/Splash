@@ -317,28 +317,19 @@ export class FluidRenderer {
         this.tmpOutputTextureView = tmpOutputTexture.createView()
 
         // buffer
-        const filterXUniformsValues = new ArrayBuffer(8)
-        const filterYUniformsValues = new ArrayBuffer(8)
-        const thicknessFilterSizeValues = new ArrayBuffer(4);
-        const filterXUniformsViews = new Float32Array(filterXUniformsValues)
-        const filterYUniformsViews = new Float32Array(filterYUniformsValues) 
-        const thicknessFilterSizeViews = new Int32Array(thicknessFilterSizeValues) 
-        filterXUniformsViews.set([1.0, 0.0])
-        filterYUniformsViews.set([0.0, 1.0])
-        thicknessFilterSizeViews.set([15])
         const filterXUniformBuffer = device.createBuffer({
             label: 'filter uniform buffer', 
-            size: filterXUniformsValues.byteLength, 
+            size: 8, 
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
         const filterYUniformBuffer = device.createBuffer({
             label: 'filter uniform buffer', 
-            size: filterYUniformsValues.byteLength, 
+            size: 8, 
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
         const thicknessFilterSizeBuffer = device.createBuffer({
             label: 'thickness filter size buffer', 
-            size: thicknessFilterSizeValues.byteLength, 
+            size: 4, 
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
         this.diffuseColorBuffer = device.createBuffer({
@@ -352,9 +343,12 @@ export class FluidRenderer {
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
         this.densityGridSizeBuffer = densityGridSizeBuffer
-        device.queue.writeBuffer(filterXUniformBuffer, 0, filterXUniformsValues);
-        device.queue.writeBuffer(filterYUniformBuffer, 0, filterYUniformsValues);
-        device.queue.writeBuffer(thicknessFilterSizeBuffer, 0, thicknessFilterSizeValues);
+        let filterXArray = new Float32Array([1., 0.])
+        let filterYArray = new Float32Array([0., 1.])
+        let thicknessFilterSizeArray = new Int32Array([15])
+        device.queue.writeBuffer(filterXUniformBuffer, 0, filterXArray);
+        device.queue.writeBuffer(filterYUniformBuffer, 0, filterYArray);
+        device.queue.writeBuffer(thicknessFilterSizeBuffer, 0, thicknessFilterSizeArray);
 
         // bindGroup
         this.depthFilter1DBindGroups = []
@@ -495,14 +489,10 @@ export class FluidRenderer {
         numParticles: number, sphereRenderFl: boolean, diffuseColor: number[], colorDensity: number
     ) 
     {
-        const diffuseColorValues = new ArrayBuffer(12)
-        const diffuseColorViews = new Float32Array(diffuseColorValues)
-        const colorDensityValues = new ArrayBuffer(4)
-        const colorDensityViews = new Float32Array(colorDensityValues)
-        diffuseColorViews.set(diffuseColor)
-        colorDensityViews.set([colorDensity])
-        this.device.queue.writeBuffer(this.diffuseColorBuffer, 0, diffuseColorViews)
-        this.device.queue.writeBuffer(this.colorDensityBuffer, 0, colorDensityViews)
+        const diffuseColorArray = new Float32Array(diffuseColor)
+        const colorDensityArray = new Float32Array([colorDensity])
+        this.device.queue.writeBuffer(this.diffuseColorBuffer, 0, diffuseColorArray)
+        this.device.queue.writeBuffer(this.colorDensityBuffer, 0, colorDensityArray)
 
         const depthFilterPassDescriptors: GPURenderPassDescriptor[] = [
             {

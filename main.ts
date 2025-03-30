@@ -220,8 +220,8 @@ async function main() {
 		size: 12, 
 		usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, 
 	})
-	const densityGridSizeData = new Float32Array(densityGridSize)
-	device.queue.writeBuffer(densityGridSizeBuffer, 0, densityGridSizeData)
+	const densityGridSizeDataArray = new Float32Array(densityGridSize)
+	device.queue.writeBuffer(densityGridSizeBuffer, 0, densityGridSizeDataArray)
 	const densityGridTexture = device.createTexture({ 
 		label: 'density grid texture', 
 		size: [densityGridSizeZ, densityGridSizeY, densityGridSizeX], // これでいい？
