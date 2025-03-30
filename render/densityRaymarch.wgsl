@@ -13,11 +13,12 @@ struct RenderUniforms {
 }
 
 @group(0) @binding(0) var depthTexture: texture_2d<f32>;
-@group(0) @binding(1) var<storage, read_write> densityGrid: array<i32>;
+@group(0) @binding(1) var densityGridTexture: texture_3d<f32>;
 @group(0) @binding(2) var<uniform> uniforms: RenderUniforms;
 @group(0) @binding(3) var<uniform> initBoxSize: vec3f;
 @group(0) @binding(4) var textureSampler: sampler;
 @group(0) @binding(5) var bgTexture: texture_2d<f32>;
+@group(0) @binding(6) var<uniform> densityGridSize: vec3f;
 
 override fixedPointMultiplier: f32; 
 
@@ -44,34 +45,6 @@ fn gamma(v: vec3f) -> vec3f {
     return pow(v, vec3(1.0 / 2.2));
 }
 
-fn value_to_color(value: f32) -> vec3<f32> {
-    // let col0 = vec3f(0, 0.4, 0.8);
-    // let col1 = vec3f(35, 161, 165) / 256;
-    // let col2 = vec3f(95, 254, 150) / 256;
-    // let col3 = vec3f(243, 250, 49) / 256;
-    // let col4 = vec3f(255, 150, 0) / 256;
-    let col0 = vec3f(1.);
-    let col1 = vec3f(1.0, 1., 0.);
-    let col2 = vec3f(1.0, 0.5, 0.);
-    let col3 = vec3f(1.0, 0., 0.);
-    let col4 = vec3f(1.0, 0., 0.);
-
-
-    if (0 <= value && value < 0.25) {
-        let t = value / 0.25;
-        return mix(col0, col1, t);
-    } else if (0.25 <= value && value < 0.50) {
-        let t = (value - 0.25) / 0.25;
-        return mix(col1, col2, t);
-    } else if (0.50 <= value && value < 0.75) {
-        let t = (value - 0.50) / 0.25;
-        return mix(col2, col3, t);
-    } else {
-        let t = (value - 0.75) / 0.25;
-        return mix(col3, col4, t);
-    }
-}
-
 @fragment
 fn fs(input: FragmentInput) -> @location(0) vec4f {
     let depth: f32 = abs(textureLoad(depthTexture, vec2u(input.iuv), 0).r);
@@ -96,45 +69,22 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
 
     var densitySum: f32 = 0.;
     var t: f32 = 0.;
-    let stepSize: f32 = 0.8; 
+    let stepSize: f32 = 0.6; 
     let densityScale: f32 = 0.2; 
-    let lightDirWorld: vec3f = normalize(vec3f(0., 1, 0.));
+    let lightDirWorld: vec3f = normalize(vec3f(0, 1, 0));
 
-    surfacePosWorld += 1.0 * lightDirWorld; 
-    for (var i = 0; i < 300; i++) { 
+    var dummy = initBoxSize;
+    var dummy2 = fixedPointMultiplier;
+
+    surfacePosWorld += 1.5 * lightDirWorld; 
+    for (var i = 0; i < 1000; i++) { 
         let posWorld = surfacePosWorld + t * lightDirWorld;
         if (any(posWorld <= vec3f(0.)) || any(posWorld >= initBoxSize - 1)) { 
             break;
         }
-
-        // trilinear interpolation 
-        let cellPos: vec3u = vec3u(posWorld);
-        let posf = fract(posWorld);
-        let idx0 = u32(cellPos.x) * u32(initBoxSize.y) * u32(initBoxSize.z) + u32(cellPos.y) * u32(initBoxSize.z) + u32(cellPos.z);
-        let idx1 = u32(cellPos.x + 1) * u32(initBoxSize.y) * u32(initBoxSize.z) + u32(cellPos.y) * u32(initBoxSize.z) + u32(cellPos.z);
-        let idx2 = u32(cellPos.x) * u32(initBoxSize.y) * u32(initBoxSize.z) + u32(cellPos.y + 1) * u32(initBoxSize.z) + u32(cellPos.z);
-        let idx3 = u32(cellPos.x + 1) * u32(initBoxSize.y) * u32(initBoxSize.z) + u32(cellPos.y + 1) * u32(initBoxSize.z) + u32(cellPos.z);
-        let idx4 = u32(cellPos.x) * u32(initBoxSize.y) * u32(initBoxSize.z) + u32(cellPos.y) * u32(initBoxSize.z) + u32(cellPos.z + 1);
-        let idx5 = u32(cellPos.x + 1) * u32(initBoxSize.y) * u32(initBoxSize.z) + u32(cellPos.y) * u32(initBoxSize.z) + u32(cellPos.z + 1);
-        let idx6 = u32(cellPos.x) * u32(initBoxSize.y) * u32(initBoxSize.z) + u32(cellPos.y + 1) * u32(initBoxSize.z) + u32(cellPos.z + 1);
-        let idx7 = u32(cellPos.x + 1) * u32(initBoxSize.y) * u32(initBoxSize.z) + u32(cellPos.y + 1) * u32(initBoxSize.z) + u32(cellPos.z + 1);
-        let d0 = f32(densityGrid[idx0]);
-        let d1 = f32(densityGrid[idx1]);
-        let d2 = f32(densityGrid[idx2]);
-        let d3 = f32(densityGrid[idx3]);
-        let d4 = f32(densityGrid[idx4]);
-        let d5 = f32(densityGrid[idx5]);
-        let d6 = f32(densityGrid[idx6]);
-        let d7 = f32(densityGrid[idx7]);
-        let c00: f32 = mix(d0, d1, posf.x); 
-        let c10: f32 = mix(d2, d3, posf.x); 
-        let c01: f32 = mix(d4, d5, posf.x); 
-        let c11: f32 = mix(d6, d7, posf.x); 
-        let c0: f32 = mix(c00, c10, posf.y);
-        let c1: f32 = mix(c01, c11, posf.y);
-        let ret: f32 = mix(c0, c1, posf.z);
-        densitySum += stepSize * decodeFixedPoint(i32(ret)) * densityScale;
-
+        let worldCoord: vec3f = posWorld / densityGridSize;
+        let density: f32 = textureSampleLevel(densityGridTexture, textureSampler, worldCoord.zyx, 0.).r;
+        densitySum += stepSize * density * densityScale;
         t += stepSize;
     }
 

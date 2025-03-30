@@ -16,7 +16,6 @@ fn encodeFixedPoint(floatingPoint: f32) -> i32 {
 	return i32(floatingPoint * fixedPointMultiplier);
 }
 
-
 @group(0) @binding(0) var<storage, read> particles: array<Particle>;
 @group(0) @binding(1) var<storage, read_write> cells: array<Cell>;
 @group(0) @binding(2) var<uniform> initBoxSize: vec3f;

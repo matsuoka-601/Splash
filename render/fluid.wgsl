@@ -119,11 +119,10 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     var reflectionDir: vec3f = reflect(rayDirView, normal);
     var reflectionDirWorld: vec3f = (uniforms.invViewMatrix * vec4f(reflectionDir, 0.0)).xyz;
     var reflectionColor: vec3f = invGamma(select(textureSampleLevel(envmapTexture, textureSampler, reflectionDirWorld, 0.).rgb, vec3f(0.75), reflectionDirWorld.y < 0.)); 
-    fresnel = select(fresnel, 0.2 * fresnel, reflectionDirWorld.y < 0.);
-    fresnelBiased = select(fresnelBiased, 0.2 * fresnelBiased, reflectionDirWorld.y < 0.);
+    fresnel = select(fresnel, 0.1 * fresnel, reflectionDirWorld.y < 0.);
+    fresnelBiased = select(fresnelBiased, 0.1 * fresnelBiased, reflectionDirWorld.y < 0.);
 
     var finalColor = 0.0     * specular + mix(refractionColor, reflectionColor, fresnel) + 0. * fresnel;
 
     return vec4f(gamma(finalColor), 1.0);
-    // return vec4f(thickness, 0, 0, 1.0);
 }

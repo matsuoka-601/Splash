@@ -6,6 +6,7 @@ import g2p from './g2p.wgsl'
 import copyPosition from './copyPosition.wgsl'
 import p2gDensity from './p2gDensity.wgsl'
 import clearDensityGrid from './clearDensityGrid.wgsl'
+import castDensityGrid from './castDensityGrid.wgsl'
 
 export const mlsmpmParticleStructSize = 80
 
@@ -25,6 +26,7 @@ export class MLSMPMSimulator {
 
     clearGridPipeline: GPUComputePipeline
     clearDensityGridPipeline: GPUComputePipeline
+    castDensityGridPipeline: GPUComputePipeline
     p2g1Pipeline: GPUComputePipeline
     p2g2Pipeline: GPUComputePipeline
     p2gDensityPipeline: GPUComputePipeline
@@ -34,6 +36,7 @@ export class MLSMPMSimulator {
 
     clearGridBindGroup: GPUBindGroup
     clearDensityGridBindGroup: GPUBindGroup
+    castDensityGridBindGroup: GPUBindGroup
     p2g1BindGroup: GPUBindGroup
     p2g2BindGroup: GPUBindGroup
     p2gDensityBindGroup: GPUBindGroup
@@ -43,6 +46,7 @@ export class MLSMPMSimulator {
 
     particleBuffer: GPUBuffer
     dtBuffer: GPUBuffer
+    densityGridBuffer: GPUBuffer
 
     device: GPUDevice
 
@@ -63,7 +67,8 @@ export class MLSMPMSimulator {
     restDensity: number
 
     constructor (
-                particleBuffer: GPUBuffer, posvelBuffer: GPUBuffer, renderUniformBuffer: GPUBuffer, densityGridBuffer: GPUBuffer, initBoxSizeBuffer: GPUBuffer,
+                particleBuffer: GPUBuffer, posvelBuffer: GPUBuffer, renderUniformBuffer: GPUBuffer, 
+                densityGridBuffer: GPUBuffer, castedDensityGridBuffer: GPUBuffer, initBoxSizeBuffer: GPUBuffer, densityGridSizeBuffer: GPUBuffer, 
                 device: GPUDevice, depthMapTextureView: GPUTextureView, canvas: HTMLCanvasElement, 
                 maxGridCount: number, maxParticleCount: number, fixedPointMultiplier: number, renderDiameter: number, 
         ) 
@@ -79,6 +84,7 @@ export class MLSMPMSimulator {
 
         const clearGridModule = device.createShaderModule({ code: clearGrid })
         const clearDensityGridModule = device.createShaderModule({ code: clearDensityGrid })
+        const castDensityGridModule = device.createShaderModule({ code: castDensityGrid })
         const p2g1Module = device.createShaderModule({ code: p2g_1 })
         const p2g2Module = device.createShaderModule({ code: p2g_2 })
         const p2gDensityModule = device.createShaderModule({ code: p2gDensity })
@@ -107,6 +113,16 @@ export class MLSMPMSimulator {
             layout: 'auto', 
             compute: {
                 module: clearDensityGridModule, 
+            }
+        })
+        this.castDensityGridPipeline = device.createComputePipeline({
+            label: "cast density grid pipeline", 
+            layout: 'auto', 
+            compute: {
+                module: castDensityGridModule, 
+                constants: {
+                    'fixedPointMultiplier': constants.fixedPointMultiplier
+                }, 
             }
         })
         this.p2g1Pipeline = device.createComputePipeline({
@@ -170,9 +186,6 @@ export class MLSMPMSimulator {
             }
         });
 
-        const numParticlesValues = new ArrayBuffer(4);
-        
-
         const cellBuffer = device.createBuffer({ 
             label: 'cells buffer', 
             size: this.cellStructSize * maxGridCount,  
@@ -190,7 +203,7 @@ export class MLSMPMSimulator {
         })
         this.numParticlesBuffer = device.createBuffer({
             label: 'number of particles buffer', 
-            size: numParticlesValues.byteLength, 
+            size: 4, // 1 x f32
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         }) 
         this.mouseInfoUniformBuffer = device.createBuffer({
@@ -200,16 +213,15 @@ export class MLSMPMSimulator {
         })
         this.sphereRadiusBuffer = device.createBuffer({
             label: 'sphere radius buffer', 
-            size: 4, // single f32
+            size: 4, // 1 x f32
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
         this.dtBuffer = device.createBuffer({
             label: 'dt buffer', 
-            size: 4, // single f32
+            size: 4, // 1 x f32
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
 
-        // TODO : これを一か所にまとめる
         this.mouseInfoViews.screenSize.set([canvas.width, canvas.height]);
         this.device.queue.writeBuffer(this.mouseInfoUniformBuffer, 0, this.mouseInfoValues);
 
@@ -224,6 +236,14 @@ export class MLSMPMSimulator {
             layout: this.clearDensityGridPipeline.getBindGroupLayout(0), 
             entries: [
               { binding: 0, resource: { buffer: densityGridBuffer }}, 
+              { binding: 1, resource: { buffer: castedDensityGridBuffer }}, 
+            ],  
+        })
+        this.castDensityGridBindGroup = device.createBindGroup({
+            layout: this.castDensityGridPipeline.getBindGroupLayout(0), 
+            entries: [
+              { binding: 0, resource: { buffer: densityGridBuffer }}, 
+              { binding: 1, resource: { buffer: castedDensityGridBuffer }}, 
             ],  
         })
         this.p2g1BindGroup = device.createBindGroup({
@@ -253,7 +273,7 @@ export class MLSMPMSimulator {
                 { binding: 1, resource: { buffer: this.densityBuffer }}, 
                 { binding: 2, resource: { buffer: this.numParticlesBuffer }}, 
                 { binding: 3, resource: { buffer: densityGridBuffer }}, 
-                { binding: 4, resource: { buffer: initBoxSizeBuffer }}
+                { binding: 4, resource: { buffer: densityGridSizeBuffer }}
             ]
         })
         this.updateGridBindGroup = device.createBindGroup({
@@ -289,6 +309,7 @@ export class MLSMPMSimulator {
         })
 
         this.particleBuffer = particleBuffer
+        this.densityGridBuffer = densityGridBuffer
     }
 
     initDambreak(initBoxSize: number[], numParticles: number) {
@@ -346,7 +367,8 @@ export class MLSMPMSimulator {
     }
 
     execute(commandEncoder: GPUCommandEncoder, mouseCoord: number[], mouseVel: number[], mouseRadius: number, 
-        densityGridFlag: boolean, dt: number, running: boolean) {
+        densityGridFlag: boolean, dt: number, running: boolean, densityGridSize: number[]
+    ) { 
         const computePass = commandEncoder.beginComputePass();
 
         this.mouseInfoViews.mouseCoord.set([mouseCoord[0], mouseCoord[1]])
@@ -403,14 +425,23 @@ export class MLSMPMSimulator {
                     computePass.dispatchWorkgroups(Math.ceil(this.numParticles / 64)) 
                 }
             }
+            let maxDensityGridCount = densityGridSize[0] * densityGridSize[1] * densityGridSize[2];
             // density grid をクリア
             computePass.setBindGroup(0, this.clearDensityGridBindGroup)
             computePass.setPipeline(this.clearDensityGridPipeline)
-            computePass.dispatchWorkgroups(Math.ceil(this.densityGridCount / 64))
+            computePass.dispatchWorkgroups(Math.ceil((maxDensityGridCount / 2) / 64))
+            // computePass.dispatchWorkgroups(Math.ceil(this.maxGridCount / 64)) // TODO : 高速化            
+            
             // density grid の p2g
             computePass.setBindGroup(0, this.p2gDensityBindGroup)
             computePass.setPipeline(this.p2gDensityPipeline)
             computePass.dispatchWorkgroups(Math.ceil(this.numParticles / 64))
+
+            // density grid を f32 にキャスト
+            computePass.setBindGroup(0, this.castDensityGridBindGroup)
+            computePass.setPipeline(this.castDensityGridPipeline)
+            computePass.dispatchWorkgroups(Math.ceil((maxDensityGridCount / 2) / 64))
+            // computePass.dispatchWorkgroups(Math.ceil(this.maxGridCount / 64)) // TODO : 高速化
 
             computePass.setBindGroup(0, this.copyPositionBindGroup)
             computePass.setPipeline(this.copyPositionPipeline)

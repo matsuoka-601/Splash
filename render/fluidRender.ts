@@ -39,14 +39,17 @@ export class FluidRenderer {
 
     diffuseColorBuffer: GPUBuffer
     colorDensityBuffer: GPUBuffer
+    densityGridSizeBuffer: GPUBuffer
 
     device: GPUDevice
 
     constructor(
-        device: GPUDevice, canvas: HTMLCanvasElement, presentationFormat: GPUTextureFormat,
-        radius: number, fov: number, posvelBuffer: GPUBuffer, 
-        renderUniformBuffer: GPUBuffer, cubemapTextureView: GPUTextureView, depthMapTextureView: GPUTextureView, 
-        densityGridBuffer: GPUBuffer, fixedPointMultiplier: number, initBoxSizeBuffer: GPUBuffer
+        renderUniformBuffer: GPUBuffer, posvelBuffer: GPUBuffer, densityGridSizeBuffer: GPUBuffer, initBoxSizeBuffer: GPUBuffer, 
+        device: GPUDevice, 
+        depthMapTextureView: GPUTextureView, cubemapTextureView: GPUTextureView, densityGridTextureView: GPUTextureView, 
+        canvas: HTMLCanvasElement, 
+        presentationFormat: GPUTextureFormat,
+        radius: number, fov: number, fixedPointMultiplier: number, 
     ) {
         this.device = device
         const maxFilterSize = 50
@@ -348,6 +351,7 @@ export class FluidRenderer {
             size: 4, 
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
+        this.densityGridSizeBuffer = densityGridSizeBuffer
         device.queue.writeBuffer(filterXUniformBuffer, 0, filterXUniformsValues);
         device.queue.writeBuffer(filterYUniformBuffer, 0, filterYUniformsValues);
         device.queue.writeBuffer(thicknessFilterSizeBuffer, 0, thicknessFilterSizeValues);
@@ -474,19 +478,22 @@ export class FluidRenderer {
             layout: this.densityRaymarchPipeline.getBindGroupLayout(0),  
             entries: [
                 { binding: 0, resource: this.depthMapTextureView },
-                { binding: 1, resource: { buffer: densityGridBuffer }},
+                { binding: 1, resource: densityGridTextureView },
                 { binding: 2, resource: { buffer: renderUniformBuffer }}, 
                 { binding: 3, resource: { buffer: initBoxSizeBuffer }}, 
                 { binding: 4, resource: sampler }, 
                 { binding: 5, resource: this.tmpOutputTextureView }, 
-                // { binding: 6, resource: { buffer: this.diffuseColorBuffer }}
+                { binding: 6, resource: { buffer: this.densityGridSizeBuffer }}, 
             ]
         })
+
+        console.log(this.densityRaymarchPipeline.getBindGroupLayout(0))
     }
 
 
     execute(context: GPUCanvasContext, commandEncoder: GPUCommandEncoder, 
-        numParticles: number, sphereRenderFl: boolean, diffuseColor: number[], colorDensity: number) 
+        numParticles: number, sphereRenderFl: boolean, diffuseColor: number[], colorDensity: number
+    ) 
     {
         const diffuseColorValues = new ArrayBuffer(12)
         const diffuseColorViews = new Float32Array(diffuseColorValues)
@@ -627,80 +634,81 @@ export class FluidRenderer {
         }
 
         if (!sphereRenderFl) {
-            const depthMapPassEncoder = commandEncoder.beginRenderPass(depthMapPassDescriptor);
-            depthMapPassEncoder.setBindGroup(0, this.depthMapBindGroup);
-            depthMapPassEncoder.setPipeline(this.depthMapPipeline);
-            depthMapPassEncoder.draw(6, numParticles);
-            depthMapPassEncoder.end();
+            const depthMapPassEncoder = commandEncoder.beginRenderPass(depthMapPassDescriptor)
+            depthMapPassEncoder.setBindGroup(0, this.depthMapBindGroup)
+            depthMapPassEncoder.setPipeline(this.depthMapPipeline)
+            depthMapPassEncoder.draw(6, numParticles)
+            depthMapPassEncoder.end()
             for (var iter = 0; iter < 2; iter++) { // 1D
-                const depthFilterPassEncoderX = commandEncoder.beginRenderPass(depthFilterPassDescriptors[0]);
-                depthFilterPassEncoderX.setBindGroup(0, this.depthFilter1DBindGroups[0]);
-                depthFilterPassEncoderX.setPipeline(this.depthFilter1DPipeline);
-                depthFilterPassEncoderX.draw(6);
-                depthFilterPassEncoderX.end();  
-                const filterPassEncoderY = commandEncoder.beginRenderPass(depthFilterPassDescriptors[1]);
-                filterPassEncoderY.setBindGroup(0, this.depthFilter1DBindGroups[1]);
-                filterPassEncoderY.setPipeline(this.depthFilter1DPipeline);
-                filterPassEncoderY.draw(6);
-                filterPassEncoderY.end();  
+                const depthFilterPassEncoderX = commandEncoder.beginRenderPass(depthFilterPassDescriptors[0])
+                depthFilterPassEncoderX.setBindGroup(0, this.depthFilter1DBindGroups[0])
+                depthFilterPassEncoderX.setPipeline(this.depthFilter1DPipeline)
+                depthFilterPassEncoderX.draw(6)
+                depthFilterPassEncoderX.end() 
+                const filterPassEncoderY = commandEncoder.beginRenderPass(depthFilterPassDescriptors[1])
+                filterPassEncoderY.setBindGroup(0, this.depthFilter1DBindGroups[1])
+                filterPassEncoderY.setPipeline(this.depthFilter1DPipeline)
+                filterPassEncoderY.draw(6)
+                filterPassEncoderY.end() 
             }
             // 2D
-            const depthFilterPassEncoderX = commandEncoder.beginRenderPass(depthFilterPassDescriptors[0]);
-            depthFilterPassEncoderX.setBindGroup(0, this.depthFilter2DBindGroups[0]);
-            depthFilterPassEncoderX.setPipeline(this.depthFilter2DPipeline);
-            depthFilterPassEncoderX.draw(6);
-            depthFilterPassEncoderX.end();  
-            const filterPassEncoderY = commandEncoder.beginRenderPass(depthFilterPassDescriptors[1]);
-            filterPassEncoderY.setBindGroup(0, this.depthFilter2DBindGroups[1]);
-            filterPassEncoderY.setPipeline(this.depthFilter2DPipeline);
-            filterPassEncoderY.draw(6);
-            filterPassEncoderY.end();
+            const depthFilterPassEncoderX = commandEncoder.beginRenderPass(depthFilterPassDescriptors[0])
+            depthFilterPassEncoderX.setBindGroup(0, this.depthFilter2DBindGroups[0])
+            depthFilterPassEncoderX.setPipeline(this.depthFilter2DPipeline)
+            depthFilterPassEncoderX.draw(6)
+            depthFilterPassEncoderX.end() 
+            const filterPassEncoderY = commandEncoder.beginRenderPass(depthFilterPassDescriptors[1])
+            filterPassEncoderY.setBindGroup(0, this.depthFilter2DBindGroups[1])
+            filterPassEncoderY.setPipeline(this.depthFilter2DPipeline)
+            filterPassEncoderY.draw(6)
+            filterPassEncoderY.end()
 
-            const thicknessMapPassEncoder = commandEncoder.beginRenderPass(thicknessMapPassDescriptor);
-            thicknessMapPassEncoder.setBindGroup(0, this.thicknessMapBindGroup);
-            thicknessMapPassEncoder.setPipeline(this.thicknessMapPipeline);
-            thicknessMapPassEncoder.draw(6, numParticles);
-            thicknessMapPassEncoder.end();
+            const thicknessMapPassEncoder = commandEncoder.beginRenderPass(thicknessMapPassDescriptor)
+            thicknessMapPassEncoder.setBindGroup(0, this.thicknessMapBindGroup)
+            thicknessMapPassEncoder.setPipeline(this.thicknessMapPipeline)
+            thicknessMapPassEncoder.draw(6, numParticles)
+            thicknessMapPassEncoder.end()
             
             for (var iter = 0; iter < 1; iter++) { 
-                const thicknessFilterPassEncoderX = commandEncoder.beginRenderPass(thicknessFilterPassDescriptors[0]);
-                thicknessFilterPassEncoderX.setBindGroup(0, this.thicknessFilterBindGroups[0]);
-                thicknessFilterPassEncoderX.setPipeline(this.thicknessFilterPipeline);
-                thicknessFilterPassEncoderX.draw(6);
-                thicknessFilterPassEncoderX.end(); 
-                const thicknessFilterPassEncoderY = commandEncoder.beginRenderPass(thicknessFilterPassDescriptors[1]);
-                thicknessFilterPassEncoderY.setBindGroup(0, this.thicknessFilterBindGroups[1]);
-                thicknessFilterPassEncoderY.setPipeline(this.thicknessFilterPipeline);
-                thicknessFilterPassEncoderY.draw(6);
-                thicknessFilterPassEncoderY.end(); 
+                const thicknessFilterPassEncoderX = commandEncoder.beginRenderPass(thicknessFilterPassDescriptors[0])
+                thicknessFilterPassEncoderX.setBindGroup(0, this.thicknessFilterBindGroups[0])
+                thicknessFilterPassEncoderX.setPipeline(this.thicknessFilterPipeline)
+                thicknessFilterPassEncoderX.draw(6)
+                thicknessFilterPassEncoderX.end()
+                const thicknessFilterPassEncoderY = commandEncoder.beginRenderPass(thicknessFilterPassDescriptors[1])
+                thicknessFilterPassEncoderY.setBindGroup(0, this.thicknessFilterBindGroups[1])
+                thicknessFilterPassEncoderY.setPipeline(this.thicknessFilterPipeline)
+                thicknessFilterPassEncoderY.draw(6)
+                thicknessFilterPassEncoderY.end()
             }
-            const bgColorPassEncoder = commandEncoder.beginRenderPass(bgColorPassDescriptor);
-            bgColorPassEncoder.setBindGroup(0, this.bgColorBindGroup);
-            bgColorPassEncoder.setPipeline(this.bgColorPipeline);
-            bgColorPassEncoder.draw(6);
-            bgColorPassEncoder.end();
+            const bgColorPassEncoder = commandEncoder.beginRenderPass(bgColorPassDescriptor)
+            bgColorPassEncoder.setBindGroup(0, this.bgColorBindGroup)
+            bgColorPassEncoder.setPipeline(this.bgColorPipeline)
+            bgColorPassEncoder.draw(6)
+            bgColorPassEncoder.end()
 
-            const fluidPassEncoder = commandEncoder.beginRenderPass(fluidPassDescriptor);
-            fluidPassEncoder.setBindGroup(0, this.fluidBindGroup);
-            fluidPassEncoder.setPipeline(this.fluidPipeline);
-            fluidPassEncoder.draw(6);
-            fluidPassEncoder.end();
+            const fluidPassEncoder = commandEncoder.beginRenderPass(fluidPassDescriptor)
+            fluidPassEncoder.setBindGroup(0, this.fluidBindGroup)
+            fluidPassEncoder.setPipeline(this.fluidPipeline)
+            fluidPassEncoder.draw(6)
+            fluidPassEncoder.end()
         } else {
-            const bgColorPassEncoder = commandEncoder.beginRenderPass(bgColorPassDescriptor);
-            bgColorPassEncoder.setBindGroup(0, this.bgColorBindGroup);
-            bgColorPassEncoder.setPipeline(this.bgColorPipeline);
-            bgColorPassEncoder.draw(6);
-            bgColorPassEncoder.end();
-            const spherePassEncoder = commandEncoder.beginRenderPass(spherePassDescriptor);
-            spherePassEncoder.setBindGroup(0, this.sphereBindGroup);
-            spherePassEncoder.setPipeline(this.spherePipeline);
-            spherePassEncoder.draw(6, numParticles);
-            spherePassEncoder.end();
-            const densityRaymarchPassEncoder = commandEncoder.beginRenderPass(densityRaymarchPassDescriptor);
-            densityRaymarchPassEncoder.setBindGroup(0, this.densityRaymarchBindGroup);
-            densityRaymarchPassEncoder.setPipeline(this.densityRaymarchPipeline);
-            densityRaymarchPassEncoder.draw(6);
-            densityRaymarchPassEncoder.end();
+            const bgColorPassEncoder = commandEncoder.beginRenderPass(bgColorPassDescriptor)
+            bgColorPassEncoder.setBindGroup(0, this.bgColorBindGroup)
+            bgColorPassEncoder.setPipeline(this.bgColorPipeline)
+            bgColorPassEncoder.draw(6)
+            bgColorPassEncoder.end()
+            const spherePassEncoder = commandEncoder.beginRenderPass(spherePassDescriptor)
+            spherePassEncoder.setBindGroup(0, this.sphereBindGroup)
+            spherePassEncoder.setPipeline(this.spherePipeline)
+            spherePassEncoder.draw(6, numParticles)
+            spherePassEncoder.end()
+
+            const densityRaymarchPassEncoder = commandEncoder.beginRenderPass(densityRaymarchPassDescriptor)
+            densityRaymarchPassEncoder.setBindGroup(0, this.densityRaymarchBindGroup)
+            densityRaymarchPassEncoder.setPipeline(this.densityRaymarchPipeline)
+            densityRaymarchPassEncoder.draw(6)
+            densityRaymarchPassEncoder.end()
         }
     }
 }
