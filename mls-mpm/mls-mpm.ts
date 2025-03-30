@@ -67,8 +67,8 @@ export class MLSMPMSimulator {
     restDensity: number
 
     constructor (
-                particleBuffer: GPUBuffer, posvelBuffer: GPUBuffer, renderUniformBuffer: GPUBuffer, densityGridBuffer: GPUBuffer, 
-                initBoxSizeBuffer: GPUBuffer, densityGridSizeBuffer: GPUBuffer, 
+                particleBuffer: GPUBuffer, posvelBuffer: GPUBuffer, renderUniformBuffer: GPUBuffer, 
+                densityGridBuffer: GPUBuffer, castedDensityGridBuffer: GPUBuffer, initBoxSizeBuffer: GPUBuffer, densityGridSizeBuffer: GPUBuffer, 
                 device: GPUDevice, depthMapTextureView: GPUTextureView, canvas: HTMLCanvasElement, 
                 maxGridCount: number, maxParticleCount: number, fixedPointMultiplier: number, renderDiameter: number, 
         ) 
@@ -236,12 +236,14 @@ export class MLSMPMSimulator {
             layout: this.clearDensityGridPipeline.getBindGroupLayout(0), 
             entries: [
               { binding: 0, resource: { buffer: densityGridBuffer }}, 
+              { binding: 1, resource: { buffer: castedDensityGridBuffer }}, 
             ],  
         })
         this.castDensityGridBindGroup = device.createBindGroup({
             layout: this.castDensityGridPipeline.getBindGroupLayout(0), 
             entries: [
               { binding: 0, resource: { buffer: densityGridBuffer }}, 
+              { binding: 1, resource: { buffer: castedDensityGridBuffer }}, 
             ],  
         })
         this.p2g1BindGroup = device.createBindGroup({
@@ -427,7 +429,7 @@ export class MLSMPMSimulator {
             // density grid をクリア
             computePass.setBindGroup(0, this.clearDensityGridBindGroup)
             computePass.setPipeline(this.clearDensityGridPipeline)
-            computePass.dispatchWorkgroups(Math.ceil(maxDensityGridCount / 64))
+            computePass.dispatchWorkgroups(Math.ceil((maxDensityGridCount / 2) / 64))
             // computePass.dispatchWorkgroups(Math.ceil(this.maxGridCount / 64)) // TODO : 高速化            
             
             // density grid の p2g
@@ -438,7 +440,7 @@ export class MLSMPMSimulator {
             // density grid を f32 にキャスト
             computePass.setBindGroup(0, this.castDensityGridBindGroup)
             computePass.setPipeline(this.castDensityGridPipeline)
-            computePass.dispatchWorkgroups(Math.ceil(maxDensityGridCount / 64))
+            computePass.dispatchWorkgroups(Math.ceil((maxDensityGridCount / 2) / 64))
             // computePass.dispatchWorkgroups(Math.ceil(this.maxGridCount / 64)) // TODO : 高速化
 
             computePass.setBindGroup(0, this.copyPositionBindGroup)

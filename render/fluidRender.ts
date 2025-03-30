@@ -44,7 +44,7 @@ export class FluidRenderer {
     device: GPUDevice
 
     constructor(
-        renderUniformBuffer: GPUBuffer, posvelBuffer: GPUBuffer, densityGridBuffer: GPUBuffer, densityGridSizeBuffer: GPUBuffer, initBoxSizeBuffer: GPUBuffer, 
+        renderUniformBuffer: GPUBuffer, posvelBuffer: GPUBuffer, densityGridSizeBuffer: GPUBuffer, initBoxSizeBuffer: GPUBuffer, 
         device: GPUDevice, 
         depthMapTextureView: GPUTextureView, cubemapTextureView: GPUTextureView, densityGridTextureView: GPUTextureView, 
         canvas: HTMLCanvasElement, 

@@ -22,10 +22,10 @@ async function init() {
 		throw new Error()
 	}
 
-	// const device = await adapter.requestDevice()
-	const device = await adapter.requestDevice({
-		requiredFeatures: ["float32-filterable"],
-	});
+	const device = await adapter.requestDevice()
+	// const device = await adapter.requestDevice({
+	// 	requiredFeatures: ["float32-filterable"],
+	// });
 
 	if (!device) {
 		alert("float-32-filterable is not supported")
@@ -203,11 +203,16 @@ async function main() {
 	// const densityGridSizeX = Math.ceil(Math.max(...simulationParams.map(param => param.initBoxSize[0])) / 64) * 64; // コピーのために切り上げ
 	const densityGridSizeX = Math.max(...simulationParams.map(param => param.initBoxSize[0])); // コピーのために切り上げ
 	const densityGridSizeY = Math.max(...simulationParams.map(param => param.initBoxSize[1]));
-	const densityGridSizeZ = Math.ceil(Math.max(...simulationParams.map(param => param.initBoxSize[2])) / 64) * 64;
+	const densityGridSizeZ = Math.ceil(Math.max(...simulationParams.map(param => param.initBoxSize[2])) / 128) * 128;
 	const densityGridSize = [densityGridSizeX, densityGridSizeY, densityGridSizeZ]
 	const densityGridBuffer = device.createBuffer({
 		label: 'density grid buffer', 
 		size: 4 * densityGridSizeX * densityGridSizeY * densityGridSizeZ, 
+		usage: GPUBufferUsage.STORAGE, // コピー元
+	})
+	const castedDensityGridBuffer = device.createBuffer({
+		label: 'casted density grid buffer', 
+		size: 2 * densityGridSizeX * densityGridSizeY * densityGridSizeZ, 
 		usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC, // コピー元
 	})
 	const densityGridSizeBuffer = device.createBuffer({
@@ -221,7 +226,7 @@ async function main() {
 		label: 'density grid texture', 
 		size: [densityGridSizeZ, densityGridSizeY, densityGridSizeX], // これでいい？
 		usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST, // コピー先
-		format: 'r32float',
+		format: 'r16float',
 		dimension: '3d'
 	})
 	const densityGridTextureView = densityGridTexture.createView()
@@ -235,12 +240,13 @@ async function main() {
 	const mlsmpmZoomRate = 0.7
 	const fixedPointMultiplier = 1e7
 	const mlsmpmSimulator = new MLSMPMSimulator(
-		particleBuffer, posvelBuffer, renderUniformBuffer, densityGridBuffer, initBoxSizeBuffer, densityGridSizeBuffer, 
+		particleBuffer, posvelBuffer, renderUniformBuffer, densityGridBuffer, castedDensityGridBuffer, 
+		initBoxSizeBuffer, densityGridSizeBuffer, 
 		device, depthMapTextureView, canvas, 
 		maxGridCount, maxParticleCount, fixedPointMultiplier, mlsmpmDiameter
 	)
 	const mlsmpmRenderer = new FluidRenderer(
-		renderUniformBuffer, posvelBuffer, densityGridBuffer, densityGridSizeBuffer, initBoxSizeBuffer, 
+		renderUniformBuffer, posvelBuffer, densityGridSizeBuffer, initBoxSizeBuffer, 
 		device, 
 		depthMapTextureView, cubemapTextureView, densityGridTextureView, 
 		canvas, 
@@ -327,13 +333,12 @@ async function main() {
 
 		device.queue.submit([commandEncoder.finish()])
 
-
 		const copyCommandEncoder = device.createCommandEncoder()
 		// グリッドをテクスチャへコピー
 		copyCommandEncoder.copyBufferToTexture(
 			{
-				buffer: densityGridBuffer,
-				bytesPerRow: densityGridSize[2] * 4,
+				buffer: castedDensityGridBuffer,
+				bytesPerRow: densityGridSize[2] * 2,
 				rowsPerImage: densityGridSize[1]
 			},
 			{
