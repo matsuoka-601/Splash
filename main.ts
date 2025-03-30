@@ -333,24 +333,26 @@ async function main() {
 
 		device.queue.submit([commandEncoder.finish()])
 
-		const copyCommandEncoder = device.createCommandEncoder()
-		// グリッドをテクスチャへコピー
-		copyCommandEncoder.copyBufferToTexture(
-			{
-				buffer: castedDensityGridBuffer,
-				bytesPerRow: densityGridSize[2] * 2,
-				rowsPerImage: densityGridSize[1]
-			},
-			{
-				texture: densityGridTexture
-			},
-			{
-				width: densityGridSize[2],
-				height: densityGridSize[1],
-				depthOrArrayLayers: densityGridSize[0]
-			}
-		);
-		device.queue.submit([copyCommandEncoder.finish()])
+		if (sphereRenderFl) {
+			const copyCommandEncoder = device.createCommandEncoder()
+			// グリッドをテクスチャへコピー
+			copyCommandEncoder.copyBufferToTexture(
+				{
+					buffer: castedDensityGridBuffer,
+					bytesPerRow: densityGridSize[2] * 2,
+					rowsPerImage: densityGridSize[1]
+				},
+				{
+					texture: densityGridTexture
+				},
+				{
+					width: densityGridSize[2],
+					height: densityGridSize[1],
+					depthOrArrayLayers: densityGridSize[0]
+				}
+			);
+			device.queue.submit([copyCommandEncoder.finish()])
+		}
 
 
 		camera.setNewPrevMouseCoord();
