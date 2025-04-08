@@ -269,9 +269,6 @@ export class FluidRenderer {
             },
             fragment: {
                 module: densityRaymarchModule, 
-                constants: {
-                    'fixedPointMultiplier': fixedPointMultiplier
-                }, 
                 targets: [
                     {
                         format: presentationFormat
