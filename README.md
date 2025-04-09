@@ -30,7 +30,7 @@ The number of simulation steps per frame is very important for real-time perform
 In this simulation, I use [Tait equation](https://en.wikipedia.org/wiki/Tait_equation) to calculate pressure like below. 
 
 $$
-  p=k\times \left\\{ \left(\frac{\rho_0}{\rho}\right)^\gamma-1  \right\\}
+  p=k\times \left\\{ \left(\frac{\rho}{\rho_0}\right)^\gamma-1  \right\\}
 $$
 
 ($k$: stiffness of the fluid, $\rho$: the density of the fluid, $\rho_0$: rest density, $\gamma$: a parameter which determines the incompressibility of the fluid)
