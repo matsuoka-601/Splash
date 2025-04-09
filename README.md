@@ -35,7 +35,7 @@ $$
 
 ($k$: stiffness of the fluid, $\rho$: the density of the fluid, $\rho_0$: rest density, $\gamma$: a parameter which determines the incompressibility of the fluid)
 
-It seems like $\gamma$ seems to have a large influence on the stability of the simulation. In the past projects, I've used $\gamma=5$, but I changed this to $\gamma=1$ in this simulation. This appears to increase the stability of the simulation at the expense of incompressibility. To mitigate the decreased incompressibility, I increased $k$ (the stiffness of the fluid) by a lot.
+$\gamma$ seems have a large influence on the stability of the simulation. In the past projects, I've used $\gamma=5$, but I changed this to $\gamma=1$ in this simulation. This appears to increase the stability of the simulation at the expense of incompressibility. To mitigate the decreased incompressibility, I increased $k$ (the stiffness of the fluid) by a lot.
 ## How to run 
 ```
 npm install
