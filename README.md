@@ -25,7 +25,18 @@ When switching to Particle mode, you can see shadows are rendered on the surface
 
 For rendering these shadows, I'm using **ray marching** using the density grid obtained in the simulation. Additional P2G stage is performed in order to build a density grid. This P2G adds extra performance overhead, but it's not that much since only single floating point number is scattered.
 ## Single Simulation Substep
-## How to run
+The number of simulation steps per frame is very important for real-time performance. In the two previous projects ([WebGPU-Ocean](https://github.com/matsuoka-601/webgpu-ocean/) and [WaterBall](https://github.com/matsuoka-601/waterball)), 2 simulation steps per frame were required for stability. On the other hand, only 1 simulation step is required per frame in this simulation!
+
+In this simulation, I use [Tait equation](https://en.wikipedia.org/wiki/Tait_equation) to calculate pressure like below. 
+
+$$
+  p=k\times \left\\{ \left(\frac{\rho}{\rho_0}\right)^\gamma-1  \right\\}
+$$
+
+($k$: stiffness of the fluid, $\rho$: the density of the fluid, $\rho_0$: rest density, $\gamma$: a parameter which determines the incompressibility of the fluid)
+
+$\gamma$ seems have a large influence on the stability of the simulation. In the past projects, I've used $\gamma=5$, but I changed this to $\gamma=1$ in this simulation. This appears to increase the stability of the simulation at the expense of incompressibility. To mitigate the decreased incompressibility, I increased $k$ (the stiffness of the fluid) by a lot.
+## How to run 
 ```
 npm install
 npm run serve
