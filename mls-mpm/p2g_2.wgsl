@@ -11,6 +11,7 @@ struct Cell {
 }
 
 override fixedPointMultiplier: f32; 
+override fixedPointMultiplierInverse: f32; 
 override stiffness: f32;
 override restDensity: f32;
 override dynamicViscosity: f32;
@@ -19,7 +20,7 @@ fn encodeFixedPoint(floatingPoint: f32) -> i32 {
 	return i32(floatingPoint * fixedPointMultiplier);
 }
 fn decodeFixedPoint(fixedPoint: i32) -> f32 {
-	return f32(fixedPoint) / fixedPointMultiplier;
+	return f32(fixedPoint) * fixedPointMultiplierInverse;
 }
 
 @group(0) @binding(0) var<storage, read> particles: array<Particle>;

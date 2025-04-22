@@ -99,6 +99,7 @@ export class MLSMPMSimulator {
             restDensity: this.restDensity, 
             dynamicViscosity: 0.1, 
             fixedPointMultiplier: fixedPointMultiplier, 
+            fixedPointMultiplierInverse: (1.0 / fixedPointMultiplier), 
         }
 
         this.clearGridPipeline = device.createComputePipeline({
@@ -121,7 +122,7 @@ export class MLSMPMSimulator {
             compute: {
                 module: castDensityGridModule, 
                 constants: {
-                    'fixedPointMultiplier': constants.fixedPointMultiplier
+                    'fixedPointMultiplierInverse': constants.fixedPointMultiplierInverse
                 }, 
             }
         })
@@ -142,6 +143,7 @@ export class MLSMPMSimulator {
                 module: p2g2Module, 
                 constants: {
                     'fixedPointMultiplier': constants.fixedPointMultiplier, 
+                    'fixedPointMultiplierInverse': constants.fixedPointMultiplierInverse, 
                     'stiffness': constants.stiffness, 
                     'restDensity': constants.restDensity, 
                     'dynamicViscosity': constants.dynamicViscosity, 
@@ -165,6 +167,7 @@ export class MLSMPMSimulator {
                 module: updateGridModule, 
                 constants: {
                     'fixedPointMultiplier': constants.fixedPointMultiplier, 
+                    'fixedPointMultiplierInverse': constants.fixedPointMultiplierInverse, 
                 }, 
             }
         });
@@ -174,7 +177,7 @@ export class MLSMPMSimulator {
             compute: {
                 module: g2pModule, 
                 constants: {
-                    'fixedPointMultiplier': constants.fixedPointMultiplier, 
+                    'fixedPointMultiplierInverse': constants.fixedPointMultiplierInverse, 
                 }, 
             }
         });

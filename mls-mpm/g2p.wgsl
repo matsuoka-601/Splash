@@ -10,7 +10,7 @@ struct Cell {
     mass: i32, 
 }
 
-override fixedPointMultiplier: f32; 
+override fixedPointMultiplierInverse: f32; 
 
 @group(0) @binding(0) var<storage, read_write> particles: array<Particle>;
 @group(0) @binding(1) var<storage, read> cells: array<Cell>;
@@ -20,7 +20,7 @@ override fixedPointMultiplier: f32;
 @group(0) @binding(5) var<uniform> dt: f32;
 
 fn decodeFixedPoint(fixedPoint: i32) -> f32 {
-	return f32(fixedPoint) / fixedPointMultiplier;
+	return f32(fixedPoint) * fixedPointMultiplierInverse;
 }
 
 @compute @workgroup_size(64)
